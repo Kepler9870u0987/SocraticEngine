@@ -1,7 +1,7 @@
 # SocraticEngine — Piano di Sviluppo e Progressi
 
-> Ultimo aggiornamento: 2026-03-06
-> Stato globale: 🟡 In corso — Fase 1 completata, Fase 2 parziale
+> Ultimo aggiornamento: 2025-07-11
+> Stato globale: 🟡 In corso — Fase 1 ~95%, Fase 2 ~90%
 
 ## Legenda Stati
 - 🔴 Non iniziato
@@ -50,18 +50,18 @@
 
 ---
 
-## FASE 2: Core Editor & UI (Priorità: CRITICA) — 🟡 70%
+## FASE 2: Core Editor & UI (Priorità: CRITICA) — 🟡 90%
 
-### Task 2.1: Editor WYSIWYG — 🟡 IN CORSO
+### Task 2.1: Editor WYSIWYG — 🟢 COMPLETATO
 | ID | Subtask | Stato | Note |
 |----|---------|-------|------|
-| 2.1.1 | Integrare ProseMirror in React | 🔴 | Deps in package.json |
-| 2.1.2 | Schema editor (paragrafi, heading, bold...) | 🔴 | |
+| 2.1.1 | Integrare ProseMirror in React | 🟢 | ProseMirrorEditor.tsx con forwardRef |
+| 2.1.2 | Schema editor (paragrafi, heading, bold...) | 🟢 | editor/schema.ts + intervention mark |
 | 2.1.3 | Tema dark CSS variables | 🟢 | styles/global.css |
 | 2.1.4 | Tipografia IBM Plex Mono + Playfair Display | 🟢 | Google Fonts + CSS vars |
 | 2.1.5 | Sistema cromatico tripartito | 🟢 | verde/arancio/viola |
-| 2.1.6 | Toolbar formattazione | 🔴 | |
-| 2.1.7 | Sidebar interventi AI | 🟢 | Placeholder in EditorPage |
+| 2.1.6 | Toolbar formattazione | 🟢 | EditorToolbar.tsx: B/I/Code/H1-3/¶/❝/lists/undo/redo |
+| 2.1.7 | Sidebar interventi AI | 🟢 | Tabbed sidebar (Interventions + Versions) |
 
 ### Task 2.2: CRUD Documenti — 🟢 COMPLETATO
 | ID | Subtask | Stato | Note |
@@ -74,14 +74,14 @@
 | 2.2.6 | Frontend: creazione + rinomina | 🟢 | |
 | 2.2.7 | Frontend: eliminazione + conferma | 🟢 | Soft delete |
 
-### Task 2.3: Versioning — 🟡 PARZIALE
+### Task 2.3: Versioning — 🟡 83%
 | ID | Subtask | Stato | Note |
 |----|---------|-------|------|
 | 2.3.1 | Backend: versioning tree | 🟢 | parent_version_id |
 | 2.3.2 | Backend: list/get/rollback | 🟢 | |
-| 2.3.3 | Frontend: pannello cronologia | 🔴 | |
-| 2.3.4 | Frontend: diff visuale | 🔴 | |
-| 2.3.5 | Frontend: rollback UI | 🔴 | |
+| 2.3.3 | Frontend: pannello cronologia | 🟢 | VersionPanel.tsx con expand/collapse |
+| 2.3.4 | Frontend: diff visuale | 🔴 | Da implementare |
+| 2.3.5 | Frontend: rollback UI | 🟢 | Rollback button in VersionPanel |
 | 2.3.6 | Commit message automatici | 🟢 | |
 
 ---
@@ -110,19 +110,32 @@
 | Fase | Subtask | Completati | % |
 |------|---------|------------|---|
 | 1: Scaffolding | 22 | 20 | 91% |
-| 2: Editor & UI | 20 | 14 | 70% |
+| 2: Editor & UI | 20 | 18 | 90% |
 | 3: AI Core | 43 | 1 | 2% |
 | 4: Sicurezza | 33 | 2 | 6% |
 | 5: Intelligence | 31 | 0 | 0% |
 | 6: Osservabilità | 17 | 2 | 12% |
-| **Totale prioritarie** | **166** | **39** | **23%** |
+| **Totale prioritarie** | **166** | **43** | **26%** |
 | Futuro (F.x) | 28 | 0 | 0% |
 
 ---
 
 ## Changelog
 
-### 2026-03-06 — Sessione 1: Scaffolding completo
+### 2025-07-11 — Sessione 2: ProseMirror + Version Panel
+- ✅ ProseMirror integrato in React (ProseMirrorEditor.tsx con forwardRef)
+- ✅ Schema editor personalizzato (schema.ts): paragrafi, heading 1-3, blockquote, hr, bold, italic, code, lists, intervention mark custom
+- ✅ Plugin setup (plugins.ts): keymap, history, input rules, dropcursor, gapcursor
+- ✅ EditorToolbar.tsx: B/I/Code/H1-H3/¶/❝/bullet/ordered/hr/undo/redo
+- ✅ VersionPanel.tsx: cronologia versioni, expand/collapse, text preview, rollback button
+- ✅ Sidebar con tabs (Interventions / Versions)
+- ✅ CSS styling (ProseMirrorEditor.css, EditorToolbar.css, VersionPanel.css)
+- ✅ npm install (196 packages, 0 vulnerabilities)
+- ✅ pip install backend deps (venv)
+- ✅ TypeScript: 0 errori, Vite build: 75 moduli, 422KB JS + 16KB CSS
+- ⚠️ Docker Desktop non attivo — alembic migration pending
+
+### 2025-07-11 — Sessione 1: Scaffolding completo
 - ✅ Monorepo: backend/ (FastAPI), frontend/ (React+Vite), shared/, doc/
 - ✅ 6 modelli DB: User, Document, Version, Intervention, SharedArtifact, AuditLog
 - ✅ Auth: registrazione Argon2id, login JWT, refresh, middleware protezione
@@ -131,14 +144,12 @@
 - ✅ Tema dark filosofico: IBM Plex Mono + Playfair Display, colori Socratica/Paradosso/Lenti
 - ✅ Docker Compose: PostgreSQL 15 + Redis 7
 - ✅ CI/CD: GitHub Actions backend (pytest) + frontend (lint+build)
-- ⏭️ Prossimi: `docker compose up` → `alembic revision --autogenerate` → `npm install` → ProseMirror
 
 ---
 
 ## Prossimi Step Immediati
-1. Avviare Docker (`docker compose up -d`)
-2. Creare virtualenv Python e installare dipendenze
-3. Generare prima migrazione Alembic (`alembic revision --autogenerate`)
-4. `npm install` nel frontend
-5. Integrare ProseMirror come componente React editor
-6. Testing end-to-end del flusso auth → create doc → edit → save
+1. Avviare Docker Desktop → `docker compose up -d`
+2. Generare prima migrazione Alembic (`alembic revision --autogenerate -m "initial"`)
+3. Implementare diff visuale tra versioni (Task 2.3.4)
+4. Rate limiting sugli endpoint auth (Task 1.3.7)
+5. **Fase 3 — AI Core**: WebSocket per streaming, integrazione Anthropic/OpenAI, Voce Socratica

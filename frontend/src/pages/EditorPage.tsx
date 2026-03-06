@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { documentsApi, type DocumentDetailResponse } from '../api/client';
 import ProseMirrorEditor, { type ProseMirrorEditorHandle } from '../components/ProseMirrorEditor';
 import EditorToolbar from '../components/EditorToolbar';
+import VersionPanel from '../components/VersionPanel';
 import './EditorPage.css';
 
 const AUTOSAVE_DELAY_MS = 3000;
@@ -16,6 +17,7 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<'interventions' | 'versions'>('interventions');
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentRef = useRef(content);
   const titleRef = useRef(title);
@@ -87,6 +89,13 @@ export default function EditorPage() {
     }
   };
 
+  const handleRollback = (updated: DocumentDetailResponse) => {
+    setDoc(updated);
+    setContent(updated.content);
+    setTitle(updated.title);
+    setLastSaved(new Date());
+  };
+
   if (loading) {
     return <div className="editor-loading">Loading document...</div>;
   }
@@ -131,17 +140,37 @@ export default function EditorPage() {
           />
         </div>
 
-        {/* Interventions Panel (placeholder) */}
+        {/* Sidebar with tabs */}
         <aside className="editor-sidebar">
-          <div className="sidebar-header">
-            <h3>Interventions</h3>
+          <div className="sidebar-tabs">
+            <button
+              className={`sidebar-tab ${sidebarTab === 'interventions' ? 'active' : ''}`}
+              onClick={() => setSidebarTab('interventions')}
+            >
+              Interventions
+            </button>
+            <button
+              className={`sidebar-tab ${sidebarTab === 'versions' ? 'active' : ''}`}
+              onClick={() => setSidebarTab('versions')}
+            >
+              Versions
+            </button>
           </div>
-          <div className="sidebar-empty">
-            <p>AI interventions will appear here.</p>
-            <p className="sidebar-hint">
-              Voce Socratica, Paradosso, and Lenti Filosofiche coming soon.
-            </p>
-          </div>
+
+          {sidebarTab === 'interventions' ? (
+            <div className="sidebar-empty">
+              <p>AI interventions will appear here.</p>
+              <p className="sidebar-hint">
+                Voce Socratica, Paradosso, and Lenti Filosofiche coming soon.
+              </p>
+            </div>
+          ) : (
+            <VersionPanel
+              documentId={documentId!}
+              currentVersionNumber={doc?.version_number ?? 0}
+              onRollback={handleRollback}
+            />
+          )}
         </aside>
       </main>
     </div>
