@@ -76,36 +76,13 @@
   overflow: hidden;
 }
 
+/* --- Prose area (replaced textarea) --- */
 .editor-content-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-.editor-textarea {
-  flex: 1;
-  resize: none;
-  border: none;
   background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-author);
-  font-size: 1.1rem;
-  line-height: 1.8;
-  padding: var(--space-2xl) var(--space-2xl);
-  max-width: 720px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.editor-textarea:focus {
-  outline: none;
-  border: none;
-}
-
-.editor-textarea::placeholder {
-  color: var(--text-muted);
-  font-style: italic;
 }
 
 /* --- Sidebar --- */
@@ -150,9 +127,5 @@
 @media (max-width: 768px) {
   .editor-sidebar {
     display: none;
-  }
-
-  .editor-textarea {
-    padding: var(--space-lg);
   }
 }

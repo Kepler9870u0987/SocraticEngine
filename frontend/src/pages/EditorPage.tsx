@@ -119,14 +119,15 @@ export default function EditorPage() {
       </header>
 
       {/* Editor Area */}
+      <EditorToolbar view={editorHandle.current?.getView() ?? null} />
       <main className="editor-main">
         <div className="editor-content-area">
-          <textarea
-            className="editor-textarea"
-            value={content}
-            onChange={(e) => handleContentChange(e.target.value)}
+          <ProseMirrorEditor
+            ref={editorHandle}
+            initialContent={content}
+            onChange={handleContentChange}
+            onCtrlS={saveDocument}
             placeholder="Begin writing... The Socratic voice will challenge your assumptions."
-            spellCheck
           />
         </div>
 

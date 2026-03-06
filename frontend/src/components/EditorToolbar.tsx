@@ -27,7 +27,8 @@ function cmd(
 }
 
 export default function EditorToolbar({ view }: EditorToolbarProps) {
-  const s = editorSchema;
+  const marks = editorSchema.marks;
+  const nodes = editorSchema.nodes;
 
   return (
     <div className="editor-toolbar">
@@ -37,7 +38,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Bold (Ctrl+B)"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, toggleMark(s.marks.strong));
+            cmd(view, toggleMark(marks.strong!));
           }}
         >
           <strong>B</strong>
@@ -47,7 +48,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Italic (Ctrl+I)"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, toggleMark(s.marks.em));
+            cmd(view, toggleMark(marks.em!));
           }}
         >
           <em>I</em>
@@ -57,7 +58,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Code"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, toggleMark(s.marks.code));
+            cmd(view, toggleMark(marks.code!));
           }}
         >
           {'</>'}
@@ -72,7 +73,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Heading 1"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, setBlockType(s.nodes.heading, { level: 1 }));
+            cmd(view, setBlockType(nodes.heading!, { level: 1 }));
           }}
         >
           H1
@@ -82,7 +83,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Heading 2"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, setBlockType(s.nodes.heading, { level: 2 }));
+            cmd(view, setBlockType(nodes.heading!, { level: 2 }));
           }}
         >
           H2
@@ -92,7 +93,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Heading 3"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, setBlockType(s.nodes.heading, { level: 3 }));
+            cmd(view, setBlockType(nodes.heading!, { level: 3 }));
           }}
         >
           H3
@@ -102,7 +103,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Paragraph"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, setBlockType(s.nodes.paragraph));
+            cmd(view, setBlockType(nodes.paragraph!));
           }}
         >
           ¶
@@ -117,7 +118,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Blockquote"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, wrapIn(s.nodes.blockquote));
+            cmd(view, wrapIn(nodes.blockquote!));
           }}
         >
           ❝
@@ -127,7 +128,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Bullet List"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, wrapInList(s.nodes.bullet_list));
+            cmd(view, wrapInList(nodes.bullet_list!));
           }}
         >
           •
@@ -137,7 +138,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
           title="Ordered List"
           onMouseDown={(e) => {
             e.preventDefault();
-            cmd(view, wrapInList(s.nodes.ordered_list));
+            cmd(view, wrapInList(nodes.ordered_list!));
           }}
         >
           1.
@@ -149,7 +150,7 @@ export default function EditorToolbar({ view }: EditorToolbarProps) {
             e.preventDefault();
             if (!view) return;
             const { state, dispatch } = view;
-            dispatch(state.tr.replaceSelectionWith(s.nodes.horizontal_rule.create()));
+            dispatch(state.tr.replaceSelectionWith(nodes.horizontal_rule!.create()));
             view.focus();
           }}
         >
