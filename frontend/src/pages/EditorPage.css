@@ -1,0 +1,158 @@
+/* Editor page styles */
+
+.editor-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  color: var(--text-muted);
+  font-family: var(--font-machine);
+}
+
+.editor-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* --- Header --- */
+.editor-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+.editor-back {
+  padding: var(--space-xs) var(--space-md);
+  font-size: 0.85rem;
+}
+
+.editor-title-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-family: var(--font-author);
+  font-size: 1.25rem;
+  color: var(--text-accent);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+}
+
+.editor-title-input:focus {
+  background: var(--bg-tertiary);
+  border: none;
+}
+
+.editor-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.status-saving {
+  color: var(--color-warning);
+}
+
+.status-saved {
+  color: var(--color-success);
+}
+
+.status-version {
+  color: var(--text-muted);
+  font-family: var(--font-machine);
+}
+
+/* --- Main Layout --- */
+.editor-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.editor-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-textarea {
+  flex: 1;
+  resize: none;
+  border: none;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-author);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  padding: var(--space-2xl) var(--space-2xl);
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.editor-textarea:focus {
+  outline: none;
+  border: none;
+}
+
+.editor-textarea::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* --- Sidebar --- */
+.editor-sidebar {
+  width: 320px;
+  border-left: 1px solid var(--color-border);
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-header h3 {
+  font-family: var(--font-machine);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+}
+
+.sidebar-empty {
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.sidebar-hint {
+  margin-top: var(--space-sm);
+  font-size: 0.75rem;
+  font-family: var(--font-machine);
+  color: var(--text-muted);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .editor-sidebar {
+    display: none;
+  }
+
+  .editor-textarea {
+    padding: var(--space-lg);
+  }
+}

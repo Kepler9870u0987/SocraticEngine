@@ -1,0 +1,125 @@
+/* Dashboard page styles */
+
+.dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) var(--space-xl);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--bg-secondary);
+}
+
+.dashboard-brand h1 {
+  font-family: var(--font-author);
+  font-size: 1.5rem;
+  color: var(--text-accent);
+}
+
+.dashboard-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.user-name {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.dashboard-main {
+  flex: 1;
+  padding: var(--space-xl) var(--space-2xl);
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.dashboard-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+}
+
+.dashboard-toolbar h2 {
+  font-family: var(--font-author);
+  font-size: 1.75rem;
+  color: var(--text-accent);
+}
+
+.dashboard-loading,
+.dashboard-empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--text-muted);
+}
+
+.dashboard-empty p:first-child {
+  font-size: 1.1rem;
+  margin-bottom: var(--space-sm);
+}
+
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+.document-card {
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.document-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.document-title {
+  font-family: var(--font-author);
+  font-size: 1.15rem;
+  color: var(--text-accent);
+  margin-bottom: var(--space-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.document-delete {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.document-card:hover .document-delete {
+  opacity: 1;
+}
+
+.document-delete:hover {
+  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.1);
+}
