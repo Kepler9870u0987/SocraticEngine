@@ -1,0 +1,228 @@
+/* =============================================
+   SocraticEngine — Global CSS Variables & Reset
+   Dark theme with philosophical typography
+   ============================================= */
+
+:root {
+  /* --- Dark Theme --- */
+  --bg-primary: #0d0d0f;
+  --bg-secondary: #16161a;
+  --bg-tertiary: #1e1e24;
+  --bg-card: #1a1a20;
+  --bg-hover: #242430;
+
+  /* --- Text --- */
+  --text-primary: #e8e6e3;
+  --text-secondary: #a0a0a8;
+  --text-muted: #6b6b75;
+  --text-accent: #f5f5f5;
+
+  /* --- Philosophical Colors --- */
+  --color-socratica: #4ade80;        /* Green — Socratic Voice */
+  --color-socratica-bg: rgba(74, 222, 128, 0.08);
+  --color-paradosso: #f97316;        /* Orange — Paradox */
+  --color-paradosso-bg: rgba(249, 115, 22, 0.08);
+  --color-lente: #a78bfa;           /* Violet — Philosophical Lenses */
+  --color-lente-bg: rgba(167, 139, 250, 0.08);
+
+  /* --- UI Colors --- */
+  --color-primary: #6366f1;
+  --color-primary-hover: #818cf8;
+  --color-danger: #ef4444;
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-border: #2a2a34;
+  --color-border-hover: #3a3a48;
+
+  /* --- Typography --- */
+  --font-author: 'Playfair Display', Georgia, serif;
+  --font-machine: 'IBM Plex Mono', 'Courier New', monospace;
+  --font-ui: 'IBM Plex Mono', system-ui, sans-serif;
+
+  /* --- Spacing --- */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* --- Borders --- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* --- Shadows --- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Reset --- */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* --- App Container --- */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  color: var(--text-muted);
+  font-family: var(--font-machine);
+}
+
+/* --- Form Elements --- */
+input,
+textarea,
+select {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  padding: var(--space-sm) var(--space-md);
+  outline: none;
+  transition: border-color 0.2s ease;
+  width: 100%;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-primary);
+}
+
+/* --- Buttons --- */
+button {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-lg);
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-hover);
+  border-color: var(--color-border-hover);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+/* --- Socratic Voice Intervention --- */
+.intervention-socratica {
+  border-left: 3px solid var(--color-socratica);
+  background: var(--color-socratica-bg);
+  padding: var(--space-md);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-family: var(--font-machine);
+  font-size: 0.85rem;
+  color: var(--color-socratica);
+  margin: var(--space-md) 0;
+}
+
+/* --- Paradox Intervention --- */
+.intervention-paradosso {
+  border-left: 3px solid var(--color-paradosso);
+  background: var(--color-paradosso-bg);
+  padding: var(--space-md);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-family: var(--font-machine);
+  font-size: 0.85rem;
+  color: var(--color-paradosso);
+  margin: var(--space-md) 0;
+}
+
+/* --- Lens Intervention --- */
+.intervention-lente {
+  border-left: 3px solid var(--color-lente);
+  background: var(--color-lente-bg);
+  padding: var(--space-md);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-family: var(--font-machine);
+  font-size: 0.85rem;
+  color: var(--color-lente);
+  margin: var(--space-md) 0;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
