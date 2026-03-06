@@ -38,6 +38,17 @@ class Settings(BaseSettings):
     # --- OpenAI ---
     OPENAI_API_KEY: str = ""
     OPENAI_DEFAULT_MODEL: str = "gpt-4o-mini"
+    OPENAI_HEAVY_MODEL: str = "gpt-4o"
+
+    # --- Google Gemini ---
+    GEMINI_API_KEY: str = ""
+    GEMINI_FAST_MODEL: str = "gemini-2.0-flash"
+    GEMINI_HEAVY_MODEL: str = "gemini-2.5-pro-preview-05-06"
+
+    # --- LLM Routing ---
+    # preferred_provider: anthropic | openai | gemini
+    LLM_PRIMARY_PROVIDER: str = "anthropic"
+    ANTHROPIC_HAIKU_MODEL: str = "claude-haiku-4-20250514"
 
     # --- Rate Limiting ---
     RATE_LIMIT_PER_MINUTE: int = 100

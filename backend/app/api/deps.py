@@ -49,3 +49,31 @@ async def get_current_user(
         )
 
     return user
+
+
+async def get_current_user_ws(token: str | None) -> User | None:
+    """
+    Authenticate WebSocket connections via ?token=<JWT> query param.
+    Returns None (instead of raising) so the WS handler can close gracefully.
+    """
+    if not token:
+        return None
+
+    payload = decode_token(token)
+    if payload is None or payload.get("type") != "access":
+        return None
+
+    user_id = payload.get("sub")
+    if not user_id:
+        return None
+
+    from app.core.database import async_session_maker
+    async with async_session_maker() as db:
+        from sqlalchemy import select
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+
+    if user is None or not user.is_active:
+        return None
+
+    return user

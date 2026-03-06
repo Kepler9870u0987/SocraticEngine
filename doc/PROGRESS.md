@@ -86,9 +86,56 @@
 
 ---
 
-## FASE 3: Funzionalità AI Core (Priorità: CRITICA) — 🔴 2%
-> Task 3.1-3.6: WebSocket, LLM, Socratica, Paradosso, Lenti, Config — Tutti 🔴
-> Unica eccezione: 3.6.1 user_preferences JSONB → 🟢
+## FASE 3: Funzionalità AI Core (Priorità: CRITICA) — � In corso
+
+### Task 3.1: WebSocket Real-Time — 🔴
+| ID | Subtask | Stato |
+|----|---------|-------|
+| 3.1.1 | WebSocket manager (connect/disconnect/broadcast) | 🔴 |
+| 3.1.2 | Endpoint `/api/ws/{document_id}` con JWT auth | 🔴 |
+| 3.1.3 | Abort/cancel stream in-flight | 🔴 |
+| 3.1.4 | Routing messaggi (text_activity, trigger, abort) | 🔴 |
+
+### Task 3.2: LLM Service Multi-Provider — 🔴
+| ID | Subtask | Stato | Provider |
+|----|---------|-------|----------|
+| 3.2.1 | Astrazione LLM con streaming async | 🔴 | — |
+| 3.2.2 | Anthropic streaming (claude-sonnet, claude-haiku) | 🔴 | Anthropic |
+| 3.2.3 | OpenAI streaming (gpt-4o-mini, gpt-4o) | 🔴 | OpenAI |
+| 3.2.4 | **Gemini streaming (gemini-2.0-flash, gemini-2.5-pro)** | 🔴 | Google |
+| 3.2.5 | Router intelligente (feature → modello) | 🔴 | — |
+| 3.2.6 | Fallback chain (Anthropic → OpenAI → Gemini) | 🔴 | — |
+
+### Task 3.3: Voce Socratica — 🔴
+| ID | Subtask | Stato |
+|----|---------|-------|
+| 3.3.1 | Prompt system + output (Domanda + Sottotesto) | 🔴 |
+| 3.3.2 | Trigger automatico 3s silenzio + debounce | 🔴 |
+| 3.3.3 | Endpoint REST POST /interventions/socratica | 🔴 |
+| 3.3.4 | Streaming via WebSocket | 🔴 |
+
+### Task 3.4: Paradosso — 🔴
+| ID | Subtask | Stato |
+|----|---------|-------|
+| 3.4.1 | Prompt system + output (Tensione + Nucleo) | 🔴 |
+| 3.4.2 | Endpoint REST POST /interventions/paradosso | 🔴 |
+| 3.4.3 | Streaming via WebSocket | 🔴 |
+| 3.4.4 | Cooldown anti-saturazione (5 min / sezione) | 🔴 |
+
+### Task 3.5: Lenti Filosofiche — 🔴
+| ID | Subtask | Stato |
+|----|---------|-------|
+| 3.5.1 | Prompt per 8 filosofi (Platone, Aristotele, Kant, Hegel, Nietzsche, Heidegger, Foucault, Wittgenstein) | 🔴 |
+| 3.5.2 | Output strutturato: Lettura + Critica + Domanda | 🔴 |
+| 3.5.3 | Endpoint REST POST /interventions/lente | 🔴 |
+| 3.5.4 | Streaming via WebSocket + selezione testo | 🔴 |
+
+### Task 3.6: Config & Persistenza Interventi — 🟡
+| ID | Subtask | Stato |
+|----|---------|-------|
+| 3.6.1 | user_preferences JSONB (frequenza, intensità) | 🟢 |
+| 3.6.2 | Salvataggio intervento in tabella interventions | 🔴 |
+| 3.6.3 | Reaction utente (accept/reject/ignore) | 🔴 |
 
 ## FASE 4: Sicurezza, Export e Condivisione — 🔴 6%
 > Task 4.1-4.6: Sicurezza API, Audit, Crittografia, Export, Share, Log → Tutti 🔴

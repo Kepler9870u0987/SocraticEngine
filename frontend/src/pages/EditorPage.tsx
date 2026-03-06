@@ -4,6 +4,7 @@ import { documentsApi, type DocumentDetailResponse } from '../api/client';
 import ProseMirrorEditor, { type ProseMirrorEditorHandle } from '../components/ProseMirrorEditor';
 import EditorToolbar from '../components/EditorToolbar';
 import VersionPanel from '../components/VersionPanel';
+import InterventionPanel from '../components/InterventionPanel';
 import './EditorPage.css';
 
 const AUTOSAVE_DELAY_MS = 3000;
@@ -18,6 +19,7 @@ export default function EditorPage() {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [sidebarTab, setSidebarTab] = useState<'interventions' | 'versions'>('interventions');
+  const token = useRef<string>(localStorage.getItem('access_token') ?? '');
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentRef = useRef(content);
   const titleRef = useRef(title);
@@ -158,12 +160,11 @@ export default function EditorPage() {
           </div>
 
           {sidebarTab === 'interventions' ? (
-            <div className="sidebar-empty">
-              <p>AI interventions will appear here.</p>
-              <p className="sidebar-hint">
-                Voce Socratica, Paradosso, and Lenti Filosofiche coming soon.
-              </p>
-            </div>
+            <InterventionPanel
+              documentId={documentId!}
+              token={token.current}
+              editorText={content}
+            />
           ) : (
             <VersionPanel
               documentId={documentId!}
