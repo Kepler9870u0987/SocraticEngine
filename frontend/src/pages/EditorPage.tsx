@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { documentsApi, type DocumentDetailResponse } from '../api/client';
+import ProseMirrorEditor, { type ProseMirrorEditorHandle } from '../components/ProseMirrorEditor';
+import EditorToolbar from '../components/EditorToolbar';
 import './EditorPage.css';
 
 const AUTOSAVE_DELAY_MS = 3000;
@@ -17,6 +19,7 @@ export default function EditorPage() {
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentRef = useRef(content);
   const titleRef = useRef(title);
+  const editorHandle = useRef<ProseMirrorEditorHandle>(null);
 
   // Keep refs in sync
   contentRef.current = content;

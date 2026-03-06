@@ -1,0 +1,152 @@
+/* === ProseMirror Editor Styles === */
+
+.prosemirror-editor-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.prosemirror-editor-wrapper .ProseMirror {
+  flex: 1;
+  outline: none;
+  padding: var(--space-2xl);
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  font-family: var(--font-author);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  caret-color: var(--color-primary);
+  min-height: 100%;
+}
+
+/* Placeholder when editor is empty */
+.prosemirror-editor-wrapper .ProseMirror[data-placeholder]::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  color: var(--text-muted);
+  font-style: italic;
+  pointer-events: none;
+}
+
+.prosemirror-editor-wrapper .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-muted);
+  font-style: italic;
+  pointer-events: none;
+  height: 0;
+}
+
+/* --- Typography --- */
+
+.prosemirror-editor-wrapper .ProseMirror h1 {
+  font-family: var(--font-author);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 2rem 0 1rem;
+  line-height: 1.3;
+  color: var(--text-accent);
+}
+
+.prosemirror-editor-wrapper .ProseMirror h2 {
+  font-family: var(--font-author);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.75rem 0 0.75rem;
+  line-height: 1.4;
+  color: var(--text-accent);
+}
+
+.prosemirror-editor-wrapper .ProseMirror h3 {
+  font-family: var(--font-author);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.prosemirror-editor-wrapper .ProseMirror p {
+  margin: 0 0 0.75rem;
+}
+
+.prosemirror-editor-wrapper .ProseMirror blockquote {
+  border-left: 3px solid var(--color-lente);
+  margin: 1rem 0;
+  padding: 0.5rem 0 0.5rem 1.25rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.prosemirror-editor-wrapper .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 2rem 0;
+}
+
+.prosemirror-editor-wrapper .ProseMirror code {
+  font-family: var(--font-machine);
+  font-size: 0.9em;
+  background: var(--bg-tertiary);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm);
+  color: var(--color-socratica);
+}
+
+.prosemirror-editor-wrapper .ProseMirror strong {
+  font-weight: 700;
+  color: var(--text-accent);
+}
+
+.prosemirror-editor-wrapper .ProseMirror em {
+  font-style: italic;
+}
+
+.prosemirror-editor-wrapper .ProseMirror ul,
+.prosemirror-editor-wrapper .ProseMirror ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.prosemirror-editor-wrapper .ProseMirror li {
+  margin-bottom: 0.25rem;
+}
+
+/* --- Intervention marks --- */
+.intervention-socratica {
+  background: var(--color-socratica-bg);
+  border-bottom: 2px solid var(--color-socratica);
+  padding: 0.05em 0;
+}
+
+.intervention-paradosso {
+  background: var(--color-paradosso-bg);
+  border-bottom: 2px solid var(--color-paradosso);
+  padding: 0.05em 0;
+}
+
+.intervention-lente {
+  background: var(--color-lente-bg);
+  border-bottom: 2px solid var(--color-lente);
+  padding: 0.05em 0;
+}
+
+/* --- Cursor --- */
+.prosemirror-editor-wrapper .ProseMirror .ProseMirror-gapcursor::after {
+  border-top-color: var(--text-primary);
+}
+
+/* --- Selection --- */
+.prosemirror-editor-wrapper .ProseMirror ::selection {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .prosemirror-editor-wrapper .ProseMirror {
+    padding: var(--space-lg);
+  }
+}
