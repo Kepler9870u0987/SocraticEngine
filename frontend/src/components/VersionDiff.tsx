@@ -33,13 +33,13 @@ function computeDiff(oldText: string, newText: string): DiffOp[] {
   }
 
   // Build LCS table
-  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array<number>(n + 1).fill(0));
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
       if (oldWords[i - 1] === newWords[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1] + 1;
+        dp[i]![j] = dp[i - 1]![j - 1]! + 1;
       } else {
-        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+        dp[i]![j] = Math.max(dp[i - 1]![j]!, dp[i]![j - 1]!);
       }
     }
   }
@@ -51,13 +51,13 @@ function computeDiff(oldText: string, newText: string): DiffOp[] {
 
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && oldWords[i - 1] === newWords[j - 1]) {
-      stack.push([0, oldWords[i - 1]]);
+      stack.push([0, oldWords[i - 1]!]);
       i--; j--;
-    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
-      stack.push([1, newWords[j - 1]]);
+    } else if (j > 0 && (i === 0 || dp[i]![j - 1]! >= dp[i - 1]![j]!)) {
+      stack.push([1, newWords[j - 1]!]);
       j--;
     } else {
-      stack.push([-1, oldWords[i - 1]]);
+      stack.push([-1, oldWords[i - 1]!]);
       i--;
     }
   }
@@ -67,8 +67,9 @@ function computeDiff(oldText: string, newText: string): DiffOp[] {
 
   // Merge consecutive same-op entries
   for (const [op, text] of stack) {
-    if (result.length > 0 && result[result.length - 1][0] === op) {
-      result[result.length - 1][1] += text;
+    const last = result[result.length - 1];
+    if (last && last[0] === op) {
+      last[1] += text;
     } else {
       result.push([op, text]);
     }
@@ -90,13 +91,13 @@ function computeLineDiff(oldText: string, newText: string): DiffOp[] {
   let oi = 0, ni = 0;
   while (oi < oldLines.length || ni < newLines.length) {
     if (oi < oldLines.length && ni < newLines.length && oldLines[oi] === newLines[ni]) {
-      result.push([0, oldLines[oi] + '\n']);
+      result.push([0, oldLines[oi]! + '\n']);
       oi++; ni++;
-    } else if (ni < newLines.length && (oi >= oldLines.length || newLines.indexOf(oldLines[oi], ni) === -1)) {
-      result.push([1, newLines[ni] + '\n']);
+    } else if (ni < newLines.length && (oi >= oldLines.length || newLines.indexOf(oldLines[oi]!, ni) === -1)) {
+      result.push([1, newLines[ni]! + '\n']);
       ni++;
     } else {
-      result.push([-1, oldLines[oi] + '\n']);
+      result.push([-1, oldLines[oi]! + '\n']);
       oi++;
     }
   }

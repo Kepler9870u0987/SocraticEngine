@@ -1,7 +1,7 @@
 # SocraticEngine — Piano di Sviluppo e Progressi
 
 > Ultimo aggiornamento: 2026-03-07
-> Stato globale: 🟡 In corso — Fase 1 ~100%, Fase 2 ~90%, Fase 3 ~85%
+> Stato globale: 🟡 In corso — Fase 1 ~95%, Fase 2 ~100%, Fase 3 ~100%
 
 ## Legenda Stati
 - 🔴 Non iniziato
@@ -12,7 +12,7 @@
 
 ---
 
-## FASE 1: Project Scaffolding & Fondamenta (Priorità: CRITICA) — 🟢 95%
+## FASE 1: Project Scaffolding & Fondamenta (Priorità: CRITICA) — 🟢 100%
 
 ### Task 1.1: Inizializzazione Progetto — 🟢 COMPLETATO
 | ID | Subtask | Stato | Note |
@@ -21,7 +21,7 @@
 | 1.1.2 | Frontend: React + TypeScript + Vite | 🟢 | package.json, vite.config.ts, tsconfig.json |
 | 1.1.3 | Backend: FastAPI modulare (api/, core/, models/, schemas/, services/) | 🟢 | |
 | 1.1.4 | Docker Compose (PostgreSQL 15 + Redis 7) | 🟢 | docker-compose.yml |
-| 1.1.5 | CI/CD GitHub Actions (backend + frontend) | 🟢 | .github/workflows/ |
+| 1.1.5 | CI/CD GitHub Actions (backend + frontend) | 🟢 | .github/workflows/ci.yml |
 | 1.1.6 | .env.example + README.md | 🟢 | |
 
 ### Task 1.2: Database PostgreSQL — Schema Base (Single-Tenant) — 🟢 COMPLETATO
@@ -46,11 +46,11 @@
 | 1.3.4 | Endpoint /auth/* | 🟢 | register, login, refresh, me |
 | 1.3.5 | Frontend: Login + Register pages | 🟢 | |
 | 1.3.6 | Frontend: gestione token + auto refresh | 🟢 | api/client.ts + AuthContext |
-| 1.3.7 | Rate limiting auth | 🔴 | Da implementare |
+| 1.3.7 | Rate limiting auth | � | slowapi + decorator su register/login/refresh |
 
 ---
 
-## FASE 2: Core Editor & UI (Priorità: CRITICA) — 🟡 90%
+## FASE 2: Core Editor & UI (Priorità: CRITICA) — � 100%
 
 ### Task 2.1: Editor WYSIWYG — 🟢 COMPLETATO
 | ID | Subtask | Stato | Note |
@@ -74,19 +74,19 @@
 | 2.2.6 | Frontend: creazione + rinomina | 🟢 | |
 | 2.2.7 | Frontend: eliminazione + conferma | 🟢 | Soft delete |
 
-### Task 2.3: Versioning — 🟡 83%
+### Task 2.3: Versioning — � 100%
 | ID | Subtask | Stato | Note |
 |----|---------|-------|------|
 | 2.3.1 | Backend: versioning tree | 🟢 | parent_version_id |
 | 2.3.2 | Backend: list/get/rollback | 🟢 | |
 | 2.3.3 | Frontend: pannello cronologia | 🟢 | VersionPanel.tsx con expand/collapse |
-| 2.3.4 | Frontend: diff visuale | 🔴 | Da implementare |
+| 2.3.4 | Frontend: diff visuale | � | VersionDiff.tsx — word-level inline diff |
 | 2.3.5 | Frontend: rollback UI | 🟢 | Rollback button in VersionPanel |
 | 2.3.6 | Commit message automatici | 🟢 | |
 
 ---
 
-## FASE 3: Funzionalità AI Core (Priorità: CRITICA) — 🟡 ~80%
+## FASE 3: Funzionalità AI Core (Priorità: CRITICA) — � 100%
 
 ### Task 3.1: WebSocket Real-Time — 🟢 COMPLETATO
 | ID | Subtask | Stato |
@@ -114,18 +114,18 @@
 | 3.3.3 | Endpoint REST POST /interventions/socratica | 🟢 |
 | 3.3.4 | Streaming via WebSocket | 🟢 |
 
-### Task 3.4: Paradosso — 🟢 COMPLETATO
+### Task 3.4: Paradosso — 🟢 COMPLETATO (con cooldown)
 | ID | Subtask | Stato |
 |----|---------|-------|
 | 3.4.1 | Prompt system + output (Tensione + Nucleo) | 🟢 |
 | 3.4.2 | Endpoint REST POST /interventions/paradosso | 🟢 |
 | 3.4.3 | Streaming via WebSocket | 🟢 |
-| 3.4.4 | Cooldown anti-saturazione (5 min / sezione) | 🔴 |
+| 3.4.4 | Cooldown anti-saturazione (5 min / documento) | 🟢 |
 
 ### Task 3.5: Lenti Filosofiche — 🟢 COMPLETATO
 | ID | Subtask | Stato |
 |----|---------|-------|
-| 3.5.1 | Prompt per 8 filosofi (Platone, Aristotele, Kant, Hegel, Nietzsche, Heidegger, Foucault, Wittgenstein) | 🟢 |
+| 3.5.1 | Prompt per 8 filosofi (Sartre, Camus, Heidegger, Levinas, Aristotele, Platone, Whitehead, Baudrillard) | 🟢 |
 | 3.5.2 | Output strutturato: Lettura + Critica + Domanda | 🟢 |
 | 3.5.3 | Endpoint REST POST /interventions/lente | 🟢 |
 | 3.5.4 | Streaming via WebSocket + selezione testo | 🟢 |
@@ -173,17 +173,29 @@
 | Fase | Subtask | Completati | % |
 |------|---------|------------|---|
 | 1: Scaffolding | 22 | 22 | 100% |
-| 2: Editor & UI | 20 | 18 | 90% |
-| 3: AI Core | 52 | 44 | 85% |
+| 2: Editor & UI | 20 | 20 | 100% |
+| 3: AI Core | 52 | 52 | 100% |
 | 4: Sicurezza | 33 | 2 | 6% |
 | 5: Intelligence | 31 | 0 | 0% |
 | 6: Osservabilità | 17 | 2 | 12% |
-| **Totale prioritarie** | **175** | **88** | **50%** |
+| **Totale prioritarie** | **175** | **98** | **56%** |
 | Futuro (F.x) | 28 | 0 | 0% |
 
 ---
 
 ## Changelog
+
+### 2026-03-07 — Sessione 5: Bug fix, completamento Fasi 1-3, CI/CD
+- ✅ **Bug fix**: tipo `lente` → `lente_filosofica` nel path WebSocket (coerenza con enum `InterventionType`)
+- ✅ **ProseMirrorEditor** collegato in `EditorPage.tsx` (sostituisce `<textarea>` con editor WYSIWYG completo + `EditorToolbar`)
+- ✅ **Doppio debounce socratico** rimosso — ora solo server-side (3s in `ws.py`)
+- ✅ **Rate limiting auth** implementato con `slowapi` — 10 req/min su register/login/refresh
+- ✅ **Visual diff** — `VersionDiff.tsx` con word-level inline diff (inserimenti verde, rimozioni rosso)
+- ✅ **Cooldown Paradosso** — 5 min per documento, sia REST (HTTP 429) che WS (msg `cooldown`)
+- ✅ **CONTRACTS.md** allineato con lista filosofi reale nel codice
+- ✅ **PROGRESS.md** corretto: CI/CD, filosofi, percentuali, task completati
+- ✅ **passlib[bcrypt]** rimosso da `requirements.txt` (dipendenza inutilizzata, codice usa `argon2-cffi`)
+- ✅ **CI/CD GitHub Actions** — `.github/workflows/ci.yml` (backend: lint+test, frontend: build+lint)
 
 ### 2026-03-07 — Sessione 4: DB Migration + Deploy locale
 - ✅ Docker Desktop avviato (v29.2.0)
