@@ -1,9 +1,9 @@
-/**
- * <InterventionCard /> — displays a single AI intervention as a q-card (PoC style).
+﻿/**
+ * <InterventionCard /> â€” displays a single AI intervention as a q-card (PoC style).
  *
- * Socratica → shows domanda + sottotesto
- * Paradosso → shows paradosso + nucleo
- * Lente     → shows philosopher, lettura + spostamento
+ * Socratica â†’ shows domanda + sottotesto
+ * Paradosso â†’ shows paradosso + nucleo
+ * Lente     â†’ shows philosopher, lettura + spostamento
  *
  * During streaming: shows thinking animation.
  * After stream_end: shows parsed JSON fields.
@@ -35,7 +35,7 @@ export default function InterventionCard({
         ? 'q-card-paradosso'
         : 'q-card-lente';
 
-  // ── Thinking state (streaming, no content yet or still accumulating JSON)
+  // â”€â”€ Thinking state (streaming, no content yet or still accumulating JSON)
   if (isStreaming) {
     return (
       <div className="thinking-card">
@@ -47,7 +47,7 @@ export default function InterventionCard({
     );
   }
 
-  // ── Error state
+  // â”€â”€ Error state
   if (intervention.status === 'error') {
     return (
       <div className={`q-card ${typeClass}`}>
@@ -59,23 +59,23 @@ export default function InterventionCard({
           Generazione interrotta o errore. Riprova.
         </div>
         {onReaction && (
-          <button className="q-card-dismiss" onClick={() => onReaction(intervention.id, 'ignore')}>✕</button>
+          <button className="q-card-dismiss" onClick={() => onReaction(intervention.id, 'ignore')}>âœ•</button>
         )}
       </div>
     );
   }
 
-  // ── SOCRATICA card
+  // â”€â”€ SOCRATICA card
   if (type === 'socratica') {
     const excerpt = triggerExcerpt
-      ? (triggerExcerpt.length > 45 ? triggerExcerpt.substring(0, 45) + '…' : triggerExcerpt)
+      ? (triggerExcerpt.length > 45 ? triggerExcerpt.substring(0, 45) + 'â€¦' : triggerExcerpt)
       : '';
     return (
       <div className={`q-card ${typeClass}`}>
         <div className="q-card-meta">
-          {excerpt && <span className="q-card-trigger" title={triggerExcerpt}>↳ "{excerpt}"</span>}
+          {excerpt && <span className="q-card-trigger" title={triggerExcerpt}>â†³ "{excerpt}"</span>}
           <span className="q-card-time">
-            {now}{latencyMs ? ` · ${latencyMs}ms` : ''}
+            {now}{latencyMs ? ` Â· ${latencyMs}ms` : ''}
           </span>
         </div>
         <div className="q-card-question">
@@ -85,18 +85,18 @@ export default function InterventionCard({
           <div className="q-card-undercut">{parsed.sottotesto}</div>
         )}
         {onReaction && (
-          <button className="q-card-dismiss" onClick={() => onReaction(intervention.id, 'ignore')}>✕</button>
+          <button className="q-card-dismiss" onClick={() => onReaction(intervention.id, 'ignore')}>âœ•</button>
         )}
       </div>
     );
   }
 
-  // ── PARADOSSO card
+  // â”€â”€ PARADOSSO card
   if (type === 'paradosso') {
     return (
       <div className={`q-card ${typeClass}`}>
         <div className="q-card-meta">
-          <span className="q-card-trigger">⊘ contraddizione interna</span>
+          <span className="q-card-trigger">âŠ˜ contraddizione interna</span>
           <span className="q-card-time">{now}</span>
         </div>
         <div className="q-card-question">
@@ -106,13 +106,13 @@ export default function InterventionCard({
           <div className="q-card-nucleus">{parsed.nucleo}</div>
         )}
         {onReaction && (
-          <button className="q-card-dismiss" onClick={() => onReaction(intervention.id, 'ignore')}>✕</button>
+          <button className="q-card-dismiss" onClick={() => onReaction(intervention.id, 'ignore')}>âœ•</button>
         )}
       </div>
     );
   }
 
-  // ── LENTE card
+  // â”€â”€ LENTE card
   const philosopherName = philosopher
     ? philosopher.charAt(0).toUpperCase() + philosopher.slice(1)
     : 'Lente';
@@ -120,7 +120,7 @@ export default function InterventionCard({
   return (
     <div className={`q-card ${typeClass}`}>
       <div className="q-card-meta">
-        <span className="q-card-trigger">◈ {philosopherName}</span>
+        <span className="q-card-trigger">â—ˆ {philosopherName}</span>
         <span className="q-card-time">{now}</span>
       </div>
       {parsed?.lettura && (
@@ -133,112 +133,7 @@ export default function InterventionCard({
         <div className="q-card-question">{intervention.content}</div>
       )}
       {onReaction && (
-        <button className="q-card-dismiss" onClick={() => onReaction(intervention.id, 'ignore')}>✕</button>
-      )}
-    </div>
-  );
-}
-
-  socratica: 'Voce Socratica',
-  paradosso: 'Paradosso',
-  lente_filosofica: 'Lente',
-};
-
-interface InterventionCardProps {
-  intervention: Intervention;
-  isStreaming?: boolean;
-  onReaction?: (id: string, reaction: 'accept' | 'reject' | 'ignore') => void;
-}
-
-/** Very light markdown-to-HTML renderer for the intervention outputs.
- *  Handles **bold** + line breaks only — no external dependency needed. */
-function renderContent(text: string): string {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n/g, '<br/>');
-}
-
-export default function InterventionCard({
-  intervention,
-  isStreaming = false,
-  onReaction,
-}: InterventionCardProps) {
-  const [dismissed, setDismissed] = useState(false);
-
-  if (dismissed) return null;
-
-  const typeClass =
-    intervention.type === 'socratica'
-      ? 'card-socratica'
-      : intervention.type === 'paradosso'
-        ? 'card-paradosso'
-        : 'card-lente';
-
-  const label = TYPE_LABELS[intervention.type] ?? intervention.type;
-  const title =
-    intervention.type === 'lente_filosofica' && intervention.philosopher
-      ? `Lente — ${intervention.philosopher}`
-      : label;
-
-  return (
-    <div className={`intervention-card ${typeClass} ${isStreaming ? 'is-streaming' : ''}`}>
-      {/* Header */}
-      <div className="card-header">
-        <span className="card-type">{title}</span>
-        <div className="card-meta">
-          {intervention.latencyMs && (
-            <span className="card-latency">{intervention.latencyMs}ms</span>
-          )}
-          {!isStreaming && (
-            <button
-              className="card-dismiss"
-              onClick={() => {
-                onReaction?.(intervention.id, 'ignore');
-                setDismissed(true);
-              }}
-              title="Chiudi"
-            >
-              ×
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div
-        className="card-content"
-        dangerouslySetInnerHTML={{ __html: renderContent(intervention.content) }}
-      />
-
-      {/* Streaming cursor */}
-      {isStreaming && <span className="card-cursor" />}
-
-      {/* Reaction buttons (only when done) */}
-      {!isStreaming && intervention.status === 'done' && onReaction && (
-        <div className="card-reactions">
-          <button
-            className="reaction-btn reaction-accept"
-            title="Accetta questa critica"
-            onClick={() => onReaction(intervention.id, 'accept')}
-          >
-            ✓ Accolgo
-          </button>
-          <button
-            className="reaction-btn reaction-reject"
-            title="Respingi questa critica"
-            onClick={() => {
-              onReaction(intervention.id, 'reject');
-              setDismissed(true);
-            }}
-          >
-            ✕ Non mi convince
-          </button>
-        </div>
-      )}
-
-      {/* Error state */}
-      {intervention.status === 'error' && (
-        <div className="card-error">Generazione interrotta.</div>
+        <button className="q-card-dismiss" onClick={() => onReaction(intervention.id, 'ignore')}>âœ•</button>
       )}
     </div>
   );
