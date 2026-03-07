@@ -1,7 +1,7 @@
 # SocraticEngine — Piano di Sviluppo e Progressi
 
-> Ultimo aggiornamento: 2025-07-11
-> Stato globale: 🟡 In corso — Fase 1 ~95%, Fase 2 ~90%
+> Ultimo aggiornamento: 2025-07-12
+> Stato globale: 🟡 In corso — Fase 1 ~95%, Fase 2 ~90%, Fase 3 ~80%
 
 ## Legenda Stati
 - 🔴 Non iniziato
@@ -86,56 +86,70 @@
 
 ---
 
-## FASE 3: Funzionalità AI Core (Priorità: CRITICA) — � In corso
+## FASE 3: Funzionalità AI Core (Priorità: CRITICA) — 🟡 ~80%
 
-### Task 3.1: WebSocket Real-Time — 🔴
+### Task 3.1: WebSocket Real-Time — 🟢 COMPLETATO
 | ID | Subtask | Stato |
 |----|---------|-------|
-| 3.1.1 | WebSocket manager (connect/disconnect/broadcast) | 🔴 |
-| 3.1.2 | Endpoint `/api/ws/{document_id}` con JWT auth | 🔴 |
-| 3.1.3 | Abort/cancel stream in-flight | 🔴 |
-| 3.1.4 | Routing messaggi (text_activity, trigger, abort) | 🔴 |
+| 3.1.1 | WebSocket manager (connect/disconnect/broadcast) | 🟢 |
+| 3.1.2 | Endpoint `/api/ws/{document_id}` con JWT auth | 🟢 |
+| 3.1.3 | Abort/cancel stream in-flight | 🟢 |
+| 3.1.4 | Routing messaggi (text_activity, trigger, abort) | 🟢 |
 
-### Task 3.2: LLM Service Multi-Provider — 🔴
+### Task 3.2: LLM Service Multi-Provider — 🟢 COMPLETATO
 | ID | Subtask | Stato | Provider |
 |----|---------|-------|----------|
-| 3.2.1 | Astrazione LLM con streaming async | 🔴 | — |
-| 3.2.2 | Anthropic streaming (claude-sonnet, claude-haiku) | 🔴 | Anthropic |
-| 3.2.3 | OpenAI streaming (gpt-4o-mini, gpt-4o) | 🔴 | OpenAI |
-| 3.2.4 | **Gemini streaming (gemini-2.0-flash, gemini-2.5-pro)** | 🔴 | Google |
-| 3.2.5 | Router intelligente (feature → modello) | 🔴 | — |
-| 3.2.6 | Fallback chain (Anthropic → OpenAI → Gemini) | 🔴 | — |
+| 3.2.1 | Astrazione LLM con streaming async | � | — |
+| 3.2.2 | Anthropic streaming (claude-sonnet-4, claude-haiku-4) | 🟢 | Anthropic |
+| 3.2.3 | OpenAI streaming (gpt-4o-mini, gpt-4o) | 🟢 | OpenAI |
+| 3.2.4 | **Gemini streaming (gemini-2.0-flash, gemini-2.5-pro)** | 🟢 | Google (google-genai≥1.0) |
+| 3.2.5 | Router intelligente (feature → modello) | 🟢 | — |
+| 3.2.6 | Fallback chain (Anthropic → OpenAI → Gemini) | 🟢 | — |
 
-### Task 3.3: Voce Socratica — 🔴
+### Task 3.3: Voce Socratica — � COMPLETATO
 | ID | Subtask | Stato |
 |----|---------|-------|
-| 3.3.1 | Prompt system + output (Domanda + Sottotesto) | 🔴 |
-| 3.3.2 | Trigger automatico 3s silenzio + debounce | 🔴 |
-| 3.3.3 | Endpoint REST POST /interventions/socratica | 🔴 |
-| 3.3.4 | Streaming via WebSocket | 🔴 |
+| 3.3.1 | Prompt system + output (Domanda + Sottotesto) | 🟢 |
+| 3.3.2 | Trigger automatico 3s silenzio + debounce | 🟢 |
+| 3.3.3 | Endpoint REST POST /interventions/socratica | 🟢 |
+| 3.3.4 | Streaming via WebSocket | 🟢 |
 
-### Task 3.4: Paradosso — 🔴
+### Task 3.4: Paradosso — 🟢 COMPLETATO
 | ID | Subtask | Stato |
 |----|---------|-------|
-| 3.4.1 | Prompt system + output (Tensione + Nucleo) | 🔴 |
-| 3.4.2 | Endpoint REST POST /interventions/paradosso | 🔴 |
-| 3.4.3 | Streaming via WebSocket | 🔴 |
+| 3.4.1 | Prompt system + output (Tensione + Nucleo) | 🟢 |
+| 3.4.2 | Endpoint REST POST /interventions/paradosso | 🟢 |
+| 3.4.3 | Streaming via WebSocket | 🟢 |
 | 3.4.4 | Cooldown anti-saturazione (5 min / sezione) | 🔴 |
 
-### Task 3.5: Lenti Filosofiche — 🔴
+### Task 3.5: Lenti Filosofiche — 🟢 COMPLETATO
 | ID | Subtask | Stato |
 |----|---------|-------|
-| 3.5.1 | Prompt per 8 filosofi (Platone, Aristotele, Kant, Hegel, Nietzsche, Heidegger, Foucault, Wittgenstein) | 🔴 |
-| 3.5.2 | Output strutturato: Lettura + Critica + Domanda | 🔴 |
-| 3.5.3 | Endpoint REST POST /interventions/lente | 🔴 |
-| 3.5.4 | Streaming via WebSocket + selezione testo | 🔴 |
+| 3.5.1 | Prompt per 8 filosofi (Platone, Aristotele, Kant, Hegel, Nietzsche, Heidegger, Foucault, Wittgenstein) | 🟢 |
+| 3.5.2 | Output strutturato: Lettura + Critica + Domanda | 🟢 |
+| 3.5.3 | Endpoint REST POST /interventions/lente | 🟢 |
+| 3.5.4 | Streaming via WebSocket + selezione testo | 🟢 |
 
-### Task 3.6: Config & Persistenza Interventi — 🟡
+### Task 3.6: Config & Persistenza Interventi — 🟢 COMPLETATO
 | ID | Subtask | Stato |
 |----|---------|-------|
 | 3.6.1 | user_preferences JSONB (frequenza, intensità) | 🟢 |
-| 3.6.2 | Salvataggio intervento in tabella interventions | 🔴 |
-| 3.6.3 | Reaction utente (accept/reject/ignore) | 🔴 |
+| 3.6.2 | Salvataggio intervento in tabella interventions | 🟢 |
+| 3.6.3 | Reaction utente (accept/reject/ignore) | 🟢 |
+
+### Task 3.7: Frontend AI UI — 🟢 COMPLETATO
+| ID | Subtask | Stato | File |
+|----|---------|-------|------|
+| 3.7.1 | Hook `useInterventions` (WS, streaming, debounce) | 🟢 | hooks/useInterventions.ts |
+| 3.7.2 | Componente `InterventionCard` | 🟢 | components/InterventionCard.tsx |
+| 3.7.3 | Componente `InterventionPanel` | 🟢 | components/InterventionPanel.tsx |
+| 3.7.4 | Integrazione in `EditorPage` | 🟢 | pages/EditorPage.tsx |
+
+### Task 3.8: Migrazione DB — ⏸️ BLOCCATO
+| ID | Subtask | Stato | Note |
+|----|---------|-------|------|
+| 3.8.1 | Alembic `--autogenerate` per tabella interventions | ⏸️ | Richiede Docker Desktop avviato |
+| 3.8.2 | `alembic upgrade head` | ⏸️ | Dopo 3.8.1 |
 
 ## FASE 4: Sicurezza, Export e Condivisione — 🔴 6%
 > Task 4.1-4.6: Sicurezza API, Audit, Crittografia, Export, Share, Log → Tutti 🔴
@@ -158,16 +172,37 @@
 |------|---------|------------|---|
 | 1: Scaffolding | 22 | 20 | 91% |
 | 2: Editor & UI | 20 | 18 | 90% |
-| 3: AI Core | 43 | 1 | 2% |
+| 3: AI Core | 50 | 40 | 80% |
 | 4: Sicurezza | 33 | 2 | 6% |
 | 5: Intelligence | 31 | 0 | 0% |
 | 6: Osservabilità | 17 | 2 | 12% |
-| **Totale prioritarie** | **166** | **43** | **26%** |
+| **Totale prioritarie** | **173** | **82** | **47%** |
 | Futuro (F.x) | 28 | 0 | 0% |
 
 ---
 
 ## Changelog
+
+### 2025-07-12 — Sessione 3: Fase 3 AI Core (quasi completa)
+- ✅ PROGRESS.md aggiornato: Fase 3 con Gemini come terzo provider
+- ✅ `google-genai>=1.0` installato (nuovo SDK ufficiale, sostituisce `google-generativeai`)
+- ✅ `backend/app/schemas/interventions.py`: Pydantic schemas (InterventionType, Philosopher×8, UserReaction, LLMProvider, request/response types, WsMessageType)
+- ✅ `backend/app/services/llm_service.py`: astrazione streaming multi-provider (Anthropic → OpenAI → Gemini), routing feature→modello, fallback chain configurabile
+- ✅ `backend/app/services/intervention_service.py`: prompt italiani per 3 tipi, 8 filosofi, metodi stream + blocking
+- ✅ `backend/app/api/ws_manager.py`: ConnectionManager singleton con abort/task cancellation
+- ✅ `backend/app/api/endpoints/ws.py`: WebSocket `/api/ws/{document_id}` (JWT via query param, debounce auto-socratica 3s)
+- ✅ `backend/app/api/endpoints/interventions.py`: REST socratica/paradosso/lente/list/reaction
+- ✅ `backend/app/api/router.py`: nuovi router inclusi
+- ✅ `backend/app/api/deps.py`: `get_current_user_ws()` aggiunto
+- ✅ `backend/app/models/intervention.py`: `version_id` reso nullable
+- ✅ `backend/app/core/config.py`: OPENAI_HEAVY_MODEL, GEMINI_API_KEY/FAST/HEAVY_MODEL, LLM_PRIMARY_PROVIDER, ANTHROPIC_HAIKU_MODEL
+- ✅ `.env.example`: GEMINI_API_KEY + LLM_PRIMARY_PROVIDER documentati
+- ✅ `frontend/src/hooks/useInterventions.ts`: hook WS con streaming, debounce 3.5s, auto-reconnect, setReaction
+- ✅ `frontend/src/components/InterventionCard.tsx`: card filosofica con colori tipo, reaction buttons, streaming cursor
+- ✅ `frontend/src/components/InterventionPanel.tsx`: pannello completo (trigger buttons, philosopher picker, WS status, lista interventi)
+- ✅ `frontend/src/pages/EditorPage.tsx`: integrazione InterventionPanel al posto del placeholder
+- ✅ TypeScript: 0 errori
+- ⏸️ Alembic migration bloccata: Docker Desktop non avviato
 
 ### 2025-07-11 — Sessione 2: ProseMirror + Version Panel
 - ✅ ProseMirror integrato in React (ProseMirrorEditor.tsx con forwardRef)
@@ -195,8 +230,9 @@
 ---
 
 ## Prossimi Step Immediati
-1. Avviare Docker Desktop → `docker compose up -d`
-2. Generare prima migrazione Alembic (`alembic revision --autogenerate -m "initial"`)
-3. Implementare diff visuale tra versioni (Task 2.3.4)
-4. Rate limiting sugli endpoint auth (Task 1.3.7)
-5. **Fase 3 — AI Core**: WebSocket per streaming, integrazione Anthropic/OpenAI, Voce Socratica
+1. **Avviare Docker Desktop** → `docker compose up -d`
+2. **Alembic migration** → `alembic revision --autogenerate -m "add_interventions_table"` + `alembic upgrade head`
+3. **Test E2E WebSocket** — aprire editor, verifica stream Voce Socratica
+4. Aggiungere cooldown anti-saturazione (Task 3.4.4)
+5. Diff visuale tra versioni (Task 2.3.4)
+6. Rate limiting endpoint auth (Task 1.3.7)
