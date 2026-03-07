@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CO-WRITING — editor filosofico</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #131313;
+    --border: #222;
+    --border-lit: #333;
+    --accent: #c8f542;
+    --accent-dim: rgba(200,245,66,0.08);
+    --accent-dim2: rgba(200,245,66,0.04);
+    --text: #e0dcd4;
+    --text-dim: #888;
+    --text-dimmer: #444;
+    --danger: #ff5555;
+    --thinking: #5599ff;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow: hidden;
+  }
+
+  /* grain */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── LAYOUT ── */
+  .shell {
+    display: grid;
+    grid-template-rows: 52px 1fr;
+    height: 100vh;
+  }
+
+  .topbar {
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 1.5rem; }
+
+  .wordmark {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--accent);
+    letter-spacing: -0.01em;
+  }
+
+  .mode-badge {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    border: 1px solid var(--border-lit);
+    padding: 0.2rem 0.6rem;
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: 1rem; }
+
+  .silence-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-dimmer);
+    transition: color 0.3s;
+  }
+
+  .silence-indicator.active { color: var(--accent); }
+  .silence-indicator.thinking { color: var(--thinking); }
+
+  .silence-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text-dimmer);
+    transition: background 0.3s;
+  }
+
+  .silence-indicator.active .silence-dot {
+    background: var(--accent);
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  .silence-indicator.thinking .silence-dot {
+    background: var(--thinking);
+    animation: pulse 0.6s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .word-count {
+    font-size: 0.6rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── MAIN COLUMNS ── */
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1px 380px;
+    overflow: hidden;
+  }
+
+  .col-divider {
+    background: var(--border);
+    position: relative;
+  }
+
+  /* ── EDITOR COLUMN ── */
+  .editor-col {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .editor-header {
+    padding: 1.2rem 2.5rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .col-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-dimmer);
+  }
+
+  .title-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    padding: 1.5rem 2.5rem 0.8rem;
+    letter-spacing: -0.02em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .title-input::placeholder { color: var(--text-dimmer); font-style: italic; }
+  .title-input:focus { background: transparent !important; color: var(--text) !important; outline: none; }
+  .title-input:-webkit-autofill,
+  .title-input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0 1000px var(--bg) inset !important; -webkit-text-fill-color: var(--text) !important; }
+
+  #editor {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 1.95;
+    color: var(--text);
+    padding: 2rem 2.5rem;
+    overflow-y: auto;
+  }
+
+  #editor::placeholder { color: var(--text-dimmer); font-style: italic; }
+
+  /* ── VOICE COLUMN ── */
+  .voice-col {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .voice-header {
+    padding: 1.2rem 1.5rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .voice-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .clear-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dimmer);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.6rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .clear-btn:hover { border-color: var(--border-lit); color: var(--text-dim); }
+
+  .voice-feed {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  /* empty state */
+  .voice-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+    opacity: 0.25;
+  }
+
+  .voice-empty-symbol {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 3.5rem;
+    color: var(--text-dim);
+    line-height: 1;
+  }
+
+  .voice-empty p {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    max-width: 200px;
+  }
+
+  /* question cards */
+  .q-card {
+    border: 1px solid var(--border);
+    padding: 1.2rem;
+    animation: slideIn 0.4s ease;
+    position: relative;
+  }
+
+  .q-card.latest {
+    border-color: var(--accent);
+    background: var(--accent-dim2);
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+  }
+
+  .q-card-trigger {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-dimmer);
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .q-card-time {
+    font-size: 0.6rem;
+    color: var(--text-dimmer);
+  }
+
+  .q-card-question {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  .q-card.latest .q-card-question { color: #fff; }
+
+  .q-card-undercut {
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.65rem;
+    color: var(--text-dimmer);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* thinking state */
+  .thinking-card {
+    border: 1px solid var(--border);
+    padding: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .thinking-dots span {
+    display: inline-block;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--thinking);
+    animation: dotBounce 1.2s ease-in-out infinite;
+  }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dotBounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  .thinking-text {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  /* silence progress bar */
+  .silence-bar-wrap {
+    height: 2px;
+    background: var(--border);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .silence-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 2px; }
+
+  /* tooltip on trigger excerpt */
+  .q-card-trigger { cursor: default; }
+  /* ── PARADOX BUTTON ── */
+  .paradox-btn {
+    background: transparent;
+    border: 1px solid var(--border-lit);
+    color: var(--text-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 0.3rem 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .paradox-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--paradox);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .paradox-btn:hover {
+    border-color: var(--paradox);
+    color: var(--paradox);
+  }
+
+  .paradox-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .paradox-btn.loading {
+    border-color: var(--paradox);
+    color: var(--paradox);
+    animation: borderPulse 1s ease-in-out infinite;
+  }
+
+  @keyframes borderPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* ── PARADOX PANEL ── */
+  .paradox-panel {
+    border-top: 1px solid var(--border);
+    background: #0c0c0c;
+    flex-shrink: 0;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .paradox-panel.open {
+    max-height: 260px;
+  }
+
+  .paradox-inner {
+    padding: 1.2rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .paradox-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--paradox);
+    opacity: 0.7;
+  }
+
+  .paradox-content {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .paradox-content.empty {
+    font-family: 'IBM Plex Mono', monospace;
+    font-style: normal;
+    font-size: 0.7rem;
+    color: var(--text-dimmer);
+  }
+
+  .paradox-nucleus {
+    font-family: 'IBM Plex Mono', monospace;
+    font-style: normal;
+    font-size: 0.7rem;
+    color: var(--paradox);
+    opacity: 0.8;
+    border-left: 1px solid var(--paradox);
+    padding-left: 0.8rem;
+    line-height: 1.5;
+  }
+
+  :root { --paradox: #ff8c42; }
+
+  :root { --lens: #c084fc; }
+
+  /* ── LENS TOOLBAR (selection popup) ── */
+  .lens-toolbar {
+    position: fixed;
+    background: #1a1a1a;
+    border: 1px solid var(--lens);
+    padding: 0.5rem 0.6rem;
+    display: none;
+    flex-direction: column;
+    gap: 0.4rem;
+    z-index: 9000;
+    min-width: 210px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+    animation: lensAppear 0.15s ease;
+  }
+
+  @keyframes lensAppear {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .lens-toolbar-label {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--lens);
+    opacity: 0.6;
+    padding: 0 0.2rem 0.2rem;
+    border-bottom: 1px solid #2a2a2a;
+    margin-bottom: 0.2rem;
+  }
+
+  .lens-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.5rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.12s;
+  }
+
+  .lens-option:hover {
+    border-color: var(--lens);
+    background: rgba(192,132,252,0.06);
+  }
+
+  .lens-option-name {
+    font-size: 0.65rem;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .lens-option-desc {
+    font-size: 0.55rem;
+    color: var(--text-dimmer);
+    font-style: italic;
+    margin-left: auto;
+  }
+
+  /* ── LENS RESULT DRAWER ── */
+  .lens-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #0d0d0d;
+    border-top: 1px solid var(--lens);
+    z-index: 500;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 45vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lens-drawer.open { transform: translateY(0); }
+
+  .lens-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 2rem;
+    border-bottom: 1px solid #1e1e1e;
+    flex-shrink: 0;
+  }
+
+  .lens-drawer-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .lens-tag {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--lens);
+    border: 1px solid var(--lens);
+    padding: 0.15rem 0.5rem;
+    opacity: 0.8;
+  }
+
+  .lens-excerpt-tag {
+    font-size: 0.6rem;
+    color: var(--text-dimmer);
+    font-style: italic;
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lens-close {
+    background: transparent;
+    border: 1px solid var(--border-lit);
+    color: var(--text-dimmer);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    padding: 0.2rem 0.6rem;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.15s;
+  }
+  .lens-close:hover { border-color: var(--lens); color: var(--lens); }
+
+  .lens-drawer-body {
+    padding: 1.5rem 2rem;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .lens-thinking {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem 0;
+  }
+
+  .lens-thinking-dots span {
+    display: inline-block;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--lens);
+    animation: dotBounce 1.2s ease-in-out infinite;
+  }
+  .lens-thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .lens-thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  .lens-thinking-text {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .lens-result-philosopher {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--lens);
+    margin-bottom: 1rem;
+    opacity: 0.7;
+  }
+
+  .lens-result-reading {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.9;
+    color: #ccc;
+    margin-bottom: 1.2rem;
+  }
+
+  .lens-result-shift {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text);
+    border-left: 2px solid var(--lens);
+    padding-left: 1.2rem;
+  }
+
+  /* hint in editor */
+  .selection-hint {
+    font-size: 0.55rem;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .selection-hint.visible { opacity: 1; }
+
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="wordmark">Editor Filosofico</span>
+      <span class="mode-badge">co-writing · editor filosofico</span>
+    </div>
+    <div class="topbar-right">
+      <div class="silence-indicator" id="silence-indicator">
+        <div class="silence-dot"></div>
+        <span id="silence-label">in attesa</span>
+      </div>
+      <span class="word-count" id="word-count">0 parole</span>
+    </div>
+  </div>
+
+  <div class="columns">
+
+    <!-- EDITOR -->
+    <div class="editor-col">
+      <div class="editor-header">
+        <span class="col-label">Il tuo testo</span>
+        <span class="selection-hint" id="selection-hint">◈ seleziona testo → lente filosofica</span><button class="paradox-btn" id="paradox-btn" onclick="triggerParadox()" title="Trova la contraddizione interna del tuo testo">⊘ trova il paradosso</button>
+      </div>
+      <input class="title-input" id="title-input" type="text" placeholder="Titolo (opzionale)" spellcheck="false" />
+      <textarea id="editor" placeholder="Inizia a scrivere. Smetti. La voce arriva nel silenzio." spellcheck="false"></textarea>
+      <div class="paradox-panel" id="paradox-panel">
+        <div class="paradox-inner">
+          <span class="paradox-label">⊘ contraddizione interna</span>
+          <div class="paradox-content empty" id="paradox-content">Premi il bottone per trovare il paradosso nel tuo testo.</div>
+          <div class="paradox-nucleus" id="paradox-nucleus" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-divider"></div>
+
+    <!-- VOICE COLUMN -->
+    <div class="voice-col">
+      <div class="voice-header">
+        <span class="col-label">Voce socratica</span>
+        <div class="voice-header-right">
+          <button class="clear-btn" onclick="clearFeed()">Pulisci</button>
+        </div>
+      </div>
+
+      <div class="silence-bar-wrap">
+        <div class="silence-bar" id="silence-bar"></div>
+      </div>
+
+      <div class="voice-feed" id="voice-feed">
+        <div class="voice-empty" id="voice-empty">
+          <div class="voice-empty-symbol">?</div>
+          <p>La voce si attiva dopo 3 secondi di silenzio. Non corregge. Non suggerisce. Smonta.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+
+  const SILENCE_DELAY = 3000; // ms di silenzio prima del trigger
+  const MIN_WORDS = 12; // parole minime per triggerare
+
+  let silenceTimer = null;
+  let silenceBarTimer = null;
+  let silenceBarStart = null;
+  let isThinking = false;
+  let lastTriggeredText = '';
+  let questionCount = 0;
+
+  const editor = document.getElementById('editor');
+  const silenceBar = document.getElementById('silence-bar');
+  const silenceIndicator = document.getElementById('silence-indicator');
+  const silenceLabel = document.getElementById('silence-label');
+  const wordCountEl = document.getElementById('word-count');
+  const voiceFeed = document.getElementById('voice-feed');
+  const voiceEmpty = document.getElementById('voice-empty');
+
+  // ── WORD COUNT ──
+  function countWords(text) {
+    return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  }
+
+  function updateWordCount() {
+    const text = editor.value;
+    const n = countWords(text);
+    wordCountEl.textContent = `${n} parol${n === 1 ? 'a' : 'e'}`;
+  }
+
+  // ── SILENCE BAR ANIMATION ──
+  function startSilenceBar() {
+    silenceBarStart = Date.now();
+    animateSilenceBar();
+  }
+
+  function animateSilenceBar() {
+    if (!silenceBarStart) return;
+    const elapsed = Date.now() - silenceBarStart;
+    const pct = Math.min((elapsed / SILENCE_DELAY) * 100, 100);
+    silenceBar.style.width = pct + '%';
+    if (pct < 100) requestAnimationFrame(animateSilenceBar);
+  }
+
+  function resetSilenceBar() {
+    silenceBarStart = null;
+    silenceBar.style.width = '0%';
+  }
+
+  // ── INDICATOR STATE ──
+  function setIndicator(state) {
+    const ind = document.getElementById('silence-indicator');
+    const lbl = document.getElementById('silence-label');
+    if (!ind || !lbl) return;
+    ind.className = 'silence-indicator';
+    if (state === 'counting') {
+      ind.classList.add('active');
+      lbl.textContent = 'silenzio...';
+    } else if (state === 'thinking') {
+      ind.classList.add('thinking');
+      lbl.textContent = 'smontando';
+    } else {
+      lbl.textContent = 'in attesa';
+    }
+  }
+
+  // ── THINKING CARD ──
+  function showThinking() {
+    const card = document.createElement('div');
+    card.className = 'thinking-card';
+    card.id = 'thinking-card';
+    card.innerHTML = `
+      <div class="thinking-dots"><span></span><span></span><span></span></div>
+      <span class="thinking-text">la voce sta leggendo quello che hai scritto...</span>
+    `;
+    voiceFeed.appendChild(card);
+    voiceFeed.scrollTop = voiceFeed.scrollHeight;
+  }
+
+  function removeThinking() {
+    const card = document.getElementById('thinking-card');
+    if (card) card.remove();
+  }
+
+  // ── HIDE EMPTY STATE ──
+  function hideEmpty() {
+    const el = document.getElementById('voice-empty');
+    if (el) el.style.display = 'none';
+  }
+
+  // ── ADD QUESTION CARD ──
+  function addQuestionCard(question, undercut, triggerExcerpt) {
+    hideEmpty();
+
+    // rimuovi .latest da tutte le card precedenti
+    document.querySelectorAll('.q-card.latest').forEach(c => c.classList.remove('latest'));
+
+    const now = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const excerpt = triggerExcerpt.length > 45
+      ? triggerExcerpt.substring(0, 45) + '…'
+      : triggerExcerpt;
+
+    const card = document.createElement('div');
+    card.className = 'q-card latest';
+    card.innerHTML = `
+      <div class="q-card-meta">
+        <span class="q-card-trigger" title="${triggerExcerpt.replace(/"/g, '&quot;')}">↳ "${excerpt}"</span>
+        <span class="q-card-time">${now}</span>
+      </div>
+      <div class="q-card-question">${question}</div>
+      ${undercut ? `<div class="q-card-undercut">${undercut}</div>` : ''}
+    `;
+    voiceFeed.appendChild(card);
+    voiceFeed.scrollTop = voiceFeed.scrollHeight;
+    questionCount++;
+  }
+
+  // ── SYSTEM PROMPT ──
+  const SYSTEM = `Sei la voce socratica di un editor filosofico. Il tuo compito è uno solo: smontare quello che l'utente ha appena scritto.
+
+NON SEI UN ASSISTENTE. Non correggi, non suggerisci, non incoraggi, non completi.
+Sei l'interlocutore che non lascia le certezze comode.
+
+IL TUO METODO:
+1. Leggi il testo con attenzione chirurgica.
+2. Identifica l'assunzione più nascosta — quella che regge tutto il discorso ma non viene mai nominata.
+3. Oppure trova la contraddizione interna: dove il testo vuole essere due cose incompatibili allo stesso tempo.
+4. Oppure individua cosa il testo sta evitando — il pensiero che non riesce ad affrontare direttamente.
+5. Formula UNA sola domanda. Non due. Non un commento. Una domanda.
+
+LA DOMANDA DEVE:
+- Essere impossibile da rispondere senza prima cambiare il modo in cui si guarda il problema
+- Fare fisicamente male leggere — non come insulto, ma come verità che non si riesce a ignorare
+- Non avere risposta implicita (non è retorica — è genuinamente aperta)
+- Essere breve: massimo 2 righe
+- Usare un tono secco, diretto, senza ornamenti
+
+DOPO LA DOMANDA:
+Aggiungi una singola frase brevissima — "il sottotesto" — che nomina esattamente cosa il testo sta evitando o la tensione che non risolve. Non più di 15 parole. Deve bruciare.
+
+FORMATO OUTPUT — CRITICO:
+Restituisci SOLO un oggetto JSON valido, nessun testo fuori:
+{
+  "domanda": "la domanda qui",
+  "sottotesto": "la frase che brucia qui"
+}`;
+
+  // ── API CALL ──
+  async function triggerSocratic() {
+    if (isThinking) return;
+
+    const text = editor.value.trim();
+    if (countWords(text) < MIN_WORDS) return;
+    if (text === lastTriggeredText) return;
+
+    lastTriggeredText = text;
+    isThinking = true;
+    setIndicator('thinking');
+    showThinking();
+
+    // estrai l'ultimo paragrafo significativo come contesto trigger
+    const paragraphs = text.split(/\n+/).filter(p => p.trim().length > 20);
+    const triggerExcerpt = paragraphs.length > 0
+      ? paragraphs[paragraphs.length - 1].trim()
+      : text.slice(-200).trim();
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 300,
+          system: SYSTEM,
+          messages: [{
+            role: 'user',
+            content: `Testo scritto finora:\n\n${text}\n\n---\nGenera la domanda socratica.`
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const raw = data.content.map(b => b.text || '').join('').trim();
+
+      let domanda = '';
+      let sottotesto = '';
+
+      try {
+        const clean = raw.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(clean);
+        domanda = parsed.domanda || '';
+        sottotesto = parsed.sottotesto || '';
+      } catch {
+        // fallback: usa il testo raw come domanda
+        domanda = raw;
+      }
+
+      removeThinking();
+      if (domanda) addQuestionCard(domanda, sottotesto, triggerExcerpt);
+
+    } catch (err) {
+      removeThinking();
+      console.error('API error:', err);
+    }
+
+    isThinking = false;
+    setIndicator('idle');
+  }
+
+  // ── INPUT HANDLER ──
+  editor.addEventListener('input', () => {
+    updateWordCount();
+
+    // reset timer
+    clearTimeout(silenceTimer);
+    resetSilenceBar();
+    setIndicator('counting');
+
+    const text = editor.value.trim();
+    if (countWords(text) < MIN_WORDS) {
+      setIndicator('idle');
+      return;
+    }
+
+    // avvia countdown visivo
+    startSilenceBar();
+
+    silenceTimer = setTimeout(() => {
+      triggerSocratic();
+    }, SILENCE_DELAY);
+  });
+
+  // aggiorna conteggio parole anche sul title
+  document.getElementById('title-input').addEventListener('input', updateWordCount);
+
+
+  // ── PARADOX SYSTEM PROMPT ──
+  const PARADOX_SYSTEM = `Sei un filosofo analitico con un compito preciso: trovare la contraddizione interna di un testo.
+
+NON sei un critico letterario. Non valuti la qualità della scrittura.
+Sei uno strumento di scavo logico.
+
+IL TUO METODO:
+1. Leggi il testo e identifica la tesi centrale — quello che il testo vuole affermare o dimostrare.
+2. Trova il punto esatto in cui il testo si contraddice da solo: dove afferma A e contemporaneamente ha bisogno di non-A per funzionare. Dove vuole essere due cose incompatibili. Dove la conclusione sabota le premesse.
+3. Non cercare errori di stile o imprecisioni — cerca la frattura ontologica: la cosa che il testo non può essere senza smettere di essere sé stesso.
+4. Il paradosso deve essere formulato come tensione irrisolvibile — non come problema da correggere, ma come contraddizione strutturale che abita il testo.
+
+OUTPUT — due elementi:
+- "paradosso": la contraddizione espressa come tensione tra due poli. Formato: "[cosa il testo afferma] / ma per farlo ha bisogno di [cosa nega]". Max 3 righe. Denso, senza ornamenti.
+- "nucleo": la singola frase che nomina il paradosso nella sua forma più pura e irriducibile. Max 12 parole. Deve sembrare inevitabile.
+
+FORMATO OUTPUT — CRITICO:
+SOLO JSON valido, zero testo fuori:
+{
+  "paradosso": "la tensione qui",
+  "nucleo": "la frase irriducibile qui"
+}`;
+
+  // ── PARADOX TRIGGER ──
+  let isParadoxThinking = false;
+
+  window.triggerParadox = async function triggerParadox() {
+    const text = editor.value.trim();
+    if (countWords(text) < MIN_WORDS) {
+      const panel = document.getElementById('paradox-panel');
+      const content = document.getElementById('paradox-content');
+      panel.classList.add('open');
+      content.className = 'paradox-content empty';
+      content.textContent = 'Scrivi almeno qualche frase prima di cercare il paradosso.';
+      return;
+    }
+    if (isParadoxThinking) return;
+
+    isParadoxThinking = true;
+    const btn = document.getElementById('paradox-btn');
+    const panel = document.getElementById('paradox-panel');
+    const contentEl = document.getElementById('paradox-content');
+    const nucleusEl = document.getElementById('paradox-nucleus');
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = '⊘ cercando...';
+
+    panel.classList.add('open');
+    contentEl.className = 'paradox-content empty';
+    contentEl.textContent = 'analisi in corso...';
+    nucleusEl.style.display = 'none';
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 400,
+          system: PARADOX_SYSTEM,
+          messages: [{
+            role: 'user',
+            content: `Testo da analizzare:\n\n${text}\n\n---\nTrova la contraddizione interna.`
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const raw = data.content.map(b => b.text || '').join('').trim();
+
+      let paradosso = '';
+      let nucleo = '';
+
+      try {
+        const clean = raw.replace(/\`\`\`json|\`\`\`/g, '').trim();
+        const parsed = JSON.parse(clean);
+        paradosso = parsed.paradosso || '';
+        nucleo = parsed.nucleo || '';
+      } catch {
+        paradosso = raw;
+      }
+
+      if (paradosso) {
+        contentEl.className = 'paradox-content';
+        contentEl.textContent = paradosso;
+      }
+      if (nucleo) {
+        nucleusEl.style.display = 'block';
+        nucleusEl.textContent = nucleo;
+      }
+
+    } catch (err) {
+      contentEl.className = 'paradox-content empty';
+      contentEl.textContent = 'Errore. Riprova.';
+      console.error(err);
+    }
+
+    if (btn) { btn.disabled = false; btn.classList.remove('loading'); btn.textContent = '⊘ trova il paradosso'; }
+    isParadoxThinking = false;
+  }
+
+  // ── CLEAR ──
+  window.clearFeed = function clearFeed() {
+    voiceFeed.innerHTML = '';
+    const empty = document.createElement('div');
+    empty.className = 'voice-empty';
+    empty.id = 'voice-empty';
+    empty.innerHTML = `
+      <div class="voice-empty-symbol">?</div>
+      <p>La voce si attiva dopo 3 secondi di silenzio. Non corregge. Non suggerisce. Smonta.</p>
+    `;
+    voiceFeed.appendChild(empty);
+    lastTriggeredText = '';
+    questionCount = 0;
+  }
+
+  // ── LENS DEFINITIONS ──
+  const LENSES = {
+    sartre: {
+      name: 'Sartre',
+      desc: 'libertà, condanna, sguardo, progetto',
+      instruction: `Usa la lente di Sartre: l'esistenza precede l'essenza, siamo condannati a essere liberi, lo sguardo dell'altro ci fissa in un'identità che non controlliamo, il progetto è ciò che dà senso all'esistenza.
+Chiedi: questo testo parla di libertà o della sua impossibilità? Dove l'autore si illude di avere un'essenza già data? Dove lo sguardo dell'altro — reale o immaginato — struttura il ragionamento? Il testo sa che scegliere è inevitabile?`
+    },
+    camus: {
+      name: 'Camus',
+      desc: 'assurdo, rivolta, Sisifo',
+      instruction: `Usa la lente di Camus: il mondo è muto di fronte alle nostre domande di senso, l'assurdo nasce dallo scarto tra il bisogno umano di chiarezza e il silenzio del mondo, la rivolta è l'unica risposta autentica.
+Chiedi: dove il testo cerca risposte che il mondo non può dare? L'autore si arrende all'assurdo o lo trasforma in rivolta? Dove si vede lo scarto tra il bisogno di senso e la realtà che non risponde?`
+    },
+    heidegger: {
+      name: 'Heidegger',
+      desc: 'essere, gettarsi, Dasein, autenticità',
+      instruction: `Usa la lente di Heidegger: il Dasein è sempre già gettato nel mondo, esiste sempre in mezzo agli altri (Mitsein), l'inautenticità è il modo normale di esistere (il Si), la morte è l'orizzonte che rivela l'esistenza propria.
+Chiedi: il testo sa che l'autore è stato gettato in un mondo che non ha scelto? Dove si vede il Si — il parlare come tutti, il pensare come si pensa? Il testo abita l'autenticità o la evita?`
+    },
+    levinas: {
+      name: 'Levinas',
+      desc: 'altro, volto, responsabilità infinita',
+      instruction: `Usa la lente di Levinas: l'altro mi precede e mi chiama prima che io possa rispondere, il volto dell'altro è ciò che resiste alla mia presa e fonda l'etica, la responsabilità per l'altro è infinita e non reciproca.
+Chiedi: dove è l'altro in questo testo? Viene ridotto a funzione o a mezzo? Il testo riesce a lasciar resistere l'altro — a non possederlo, non ridurlo? Dove l'autore sfugge alla chiamata dell'altro?`
+    },
+    aristotele: {
+      name: 'Aristotele',
+      desc: 'sostanza, accidente, forma, materia',
+      instruction: `Usa la lente di Aristotele: ogni cosa ha una sostanza (ciò che è necessariamente, la sua essenza) e degli accidenti (ciò che potrebbe non essere). La forma dà intelligibilità alla materia. La causa finale è ciò verso cui tende.
+Chiedi: di cosa parla davvero questo testo — della sostanza delle cose o dei loro accidenti? Cosa è necessario e cosa è contingente nel ragionamento? Qual è la causa finale — ciò verso cui tende senza dirlo?`
+    },
+    platone: {
+      name: 'Platone',
+      desc: 'idea, simulacro, caverna, reale',
+      instruction: `Usa la lente di Platone: il mondo sensibile è copia del mondo delle idee, il simulacro è copia di copia, la caverna è la condizione di chi scambia le ombre per la realtà.
+Chiedi: il testo parla dell'originale o della sua copia? Cosa proietta le ombre che l'autore vede? Dove il testo scambia il simulacro per il reale? Se uscisse dalla caverna, cosa vedrebbe di diverso?`
+    },
+    whitehead: {
+      name: 'Whitehead',
+      desc: 'processo, evento, relazione, divenire',
+      instruction: `Usa la lente di Whitehead: la realtà non è fatta di sostanze statiche ma di eventi, processi e relazioni in divenire. Niente esiste in isolamento — tutto è occasione d'esperienza che si costituisce nelle relazioni.
+Chiedi: il testo tratta le cose come oggetti statici o come processi? Dove congela qualcosa che è in realtà in divenire? Quali relazioni sta ignorando? Se trattasse tutto come evento, cosa cambierebbe?`
+    },
+    baudrillard: {
+      name: 'Baudrillard',
+      desc: 'simulacro, iperreale, modello, codice',
+      instruction: `Usa la lente di Baudrillard: il simulacro non è copia del reale — è un modello che precede e produce il reale fino a sostituirlo. L'iperreale è più reale del reale. Il codice governa senza che nessuno lo abbia scelto.
+Chiedi: in questo testo, il modello ha già sostituito il reale? L'autore parla di qualcosa che esiste ancora o solo del suo simulacro? Dove il codice — la logica del sistema — governa il ragionamento senza essere nominato?`
+    }
+  };
+
+  let selectedText = '';
+  let lensToolbarVisible = false;
+  let isLensThinking = false;
+
+  // ── SELECTION HANDLER ──
+  // ── SELECTION: use mouseup with small delay to let selection settle ──
+  editor.addEventListener('mouseup', () => setTimeout(handleSelection, 20));
+  editor.addEventListener('keyup', (e) => {
+    if (e.shiftKey) setTimeout(handleSelection, 20);
+  });
+
+  function handleSelection() {
+    if (!editor) return;
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const textareaSel = editor.value.substring(start, end).trim();
+
+    const sh1 = document.getElementById('selection-hint');
+    const hasEnoughText = editor.value.trim().length > 30;
+
+    if (textareaSel && textareaSel.length > 15) {
+      selectedText = textareaSel;
+      if (sh1) sh1.classList.remove('visible');
+      showLensToolbar(end);
+    } else {
+      hideLensToolbar();
+      if (sh1) {
+        if (hasEnoughText) sh1.classList.add('visible');
+        else sh1.classList.remove('visible');
+      }
+    }
+  }
+
+  function showLensToolbar(cursorPos) {
+    const toolbar = document.getElementById('lens-toolbar');
+    if (!toolbar) return;
+
+    // Position: anchor to editor, appear at fixed offset from top-right of editor
+    const editorRect = editor.getBoundingClientRect();
+
+    // Calculate approximate line position of cursor
+    const textBefore = editor.value.substring(0, cursorPos);
+    const linesBefore = textBefore.split('\n').length;
+    const lineHeight = 22;
+    const rawTop = editorRect.top + (linesBefore * lineHeight) - editor.scrollTop + 8;
+
+    // Clamp so it stays inside viewport
+    const toolbarH = 320;
+    const top = Math.min(Math.max(rawTop, editorRect.top + 8), window.innerHeight - toolbarH - 8);
+    const left = editorRect.left + editorRect.width / 2 - 100;
+
+    toolbar.style.top = top + 'px';
+    toolbar.style.left = Math.max(8, left) + 'px';
+    toolbar.style.display = 'flex';
+    lensToolbarVisible = true;
+  }
+
+  function hideLensToolbar() {
+    const toolbar = document.getElementById('lens-toolbar');
+    if (!toolbar) return;
+    toolbar.style.display = 'none';
+    lensToolbarVisible = false;
+  }
+
+  // click outside closes toolbar — use mousedown with capture to not interfere with mouseup
+  document.addEventListener('click', (e) => {
+    const toolbar = document.getElementById('lens-toolbar');
+    if (!toolbar || toolbar.style.display === 'none') return;
+    if (!toolbar.contains(e.target)) {
+      hideLensToolbar();
+    }
+  });
+
+  // ── APPLY LENS ──
+  window.applyLens = async function applyLens(lensKey) {
+    if (isLensThinking) return;
+    if (!selectedText) return;
+
+    hideLensToolbar();
+
+    const lens = LENSES[lensKey];
+    const drawer = document.getElementById('lens-drawer');
+    const body = document.getElementById('lens-drawer-body');
+    const tag = document.getElementById('lens-tag');
+    const excerptTag = document.getElementById('lens-excerpt-tag');
+
+    tag.textContent = '◈ ' + lens.name;
+    const excShort = selectedText.length > 60 ? selectedText.substring(0, 60) + '…' : selectedText;
+    excerptTag.textContent = '"' + excShort + '"';
+
+    body.innerHTML = `
+      <div class="lens-thinking">
+        <div class="lens-thinking-dots"><span></span><span></span><span></span></div>
+        <span class="lens-thinking-text">${lens.name} sta leggendo il passaggio...</span>
+      </div>`;
+
+    if (drawer) drawer.classList.add('open');
+    isLensThinking = true;
+
+    const fullText = editor.value.trim();
+
+    const LENS_SYSTEM = `Sei la lente filosofica di un editor di co-writing. Hai un compito preciso: leggere un passaggio di testo attraverso una specifica lente filosofica e restituire quello che quella lente vede — non quello che l'autore voleva dire, ma quello che il filosofo vedrebbe.
+
+NON spieghi la filosofia. NON fai un riassunto del pensiero del filosofo.
+Applichi la lente come strumento di lettura specifico su quel testo specifico.
+
+Il tuo output ha due parti:
+1. "lettura": cosa vede la lente in questo passaggio. Cosa rivela che il testo non vede di sé stesso. Max 4 frasi dense. Nessun ornamento.
+2. "spostamento": una frase che mostra come il testo cambierebbe se l'autore guardasse da questo punto di vista. Non una correzione — uno spostamento di angolo. Max 20 parole. Deve sembrare inevitabile.
+
+FORMATO OUTPUT — SOLO JSON valido:
+{
+  "lettura": "cosa vede la lente qui",
+  "spostamento": "come il testo si sposta da questo angolo"
+}`;
+
+    const userMsg = `Lente: ${lens.name}
+Istruzioni per questa lente: ${lens.instruction}
+
+Testo completo per contesto:
+${fullText}
+
+Passaggio selezionato su cui applicare la lente:
+"${selectedText}"
+
+Applica la lente.`;
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 500,
+          system: LENS_SYSTEM,
+          messages: [{ role: 'user', content: userMsg }]
+        })
+      });
+
+      const data = await response.json();
+      const raw = data.content.map(b => b.text || '').join('').trim();
+
+      let lettura = '';
+      let spostamento = '';
+
+      try {
+        const clean = raw.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(clean);
+        lettura = parsed.lettura || '';
+        spostamento = parsed.spostamento || '';
+      } catch {
+        lettura = raw;
+      }
+
+      body.innerHTML = `
+        <div class="lens-result-philosopher">${lens.name} — ${lens.desc}</div>
+        ${lettura ? `<div class="lens-result-reading">${lettura}</div>` : ''}
+        ${spostamento ? `<div class="lens-result-shift">${spostamento}</div>` : ''}
+      `;
+
+    } catch (err) {
+      body.innerHTML = '<div style="color:var(--text-dimmer);font-size:0.7rem">Errore. Riprova.</div>';
+      console.error(err);
+    }
+
+    isLensThinking = false;
+  }
+
+  window.closeLensDrawer = function closeLensDrawer() {
+    const d = document.getElementById('lens-drawer');
+    if (d) d.classList.remove('open');
+  }
+
+
+  }); // end DOMContentLoaded
+</script>
+
+
+  <!-- LENS TOOLBAR (selection popup) -->
+  <div id="lens-toolbar" style="position:fixed;display:none;flex-direction:column;gap:0.4rem;background:#1a1a1a;border:1px solid #c084fc;padding:0.5rem 0.6rem;z-index:9000;min-width:210px;box-shadow:0 8px 32px rgba(0,0,0,0.8);">
+    <div style="font-size:0.55rem;text-transform:uppercase;letter-spacing:0.2em;color:#c084fc;opacity:0.6;padding:0 0.2rem 0.4rem;border-bottom:1px solid #2a2a2a;">◈ lente filosofica</div>
+    <div class="lens-option" onclick="applyLens('sartre')"><span class="lens-option-name">Sartre</span><span class="lens-option-desc">libertà / condanna</span></div>
+    <div class="lens-option" onclick="applyLens('camus')"><span class="lens-option-name">Camus</span><span class="lens-option-desc">assurdo / rivolta</span></div>
+    <div class="lens-option" onclick="applyLens('heidegger')"><span class="lens-option-name">Heidegger</span><span class="lens-option-desc">essere / gettarsi</span></div>
+    <div class="lens-option" onclick="applyLens('levinas')"><span class="lens-option-name">Levinas</span><span class="lens-option-desc">altro / responsabilità</span></div>
+    <div class="lens-option" onclick="applyLens('aristotele')"><span class="lens-option-name">Aristotele</span><span class="lens-option-desc">sostanza / accidente</span></div>
+    <div class="lens-option" onclick="applyLens('platone')"><span class="lens-option-name">Platone</span><span class="lens-option-desc">reale / simulacro</span></div>
+    <div class="lens-option" onclick="applyLens('whitehead')"><span class="lens-option-name">Whitehead</span><span class="lens-option-desc">processo / evento</span></div>
+    <div class="lens-option" onclick="applyLens('baudrillard')"><span class="lens-option-name">Baudrillard</span><span class="lens-option-desc">iperreale / modello</span></div>
+  </div>
+
+  <!-- LENS RESULT DRAWER -->
+  <div id="lens-drawer" class="lens-drawer">
+    <div class="lens-drawer-header">
+      <div class="lens-drawer-header-left">
+        <span class="lens-tag" id="lens-tag">◈ lente</span>
+        <span class="lens-excerpt-tag" id="lens-excerpt-tag"></span>
+      </div>
+      <button class="lens-close" onclick="closeLensDrawer()">✕ chiudi</button>
+    </div>
+    <div class="lens-drawer-body" id="lens-drawer-body"></div>
+  </div>
+
+</body>
+</html>

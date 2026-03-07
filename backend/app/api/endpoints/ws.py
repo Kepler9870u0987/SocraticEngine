@@ -102,14 +102,16 @@ async def websocket_endpoint(ws: WebSocket, document_id: str) -> None:
             elif msg_type == WsMessageType.TRIGGER_LENTE:
                 await manager.abort(document_id, str(user.id))
                 context = msg.get("context", "")
-                philosopher_raw = msg.get("philosopher", "Foucault")
+                selected_text = msg.get("selected_text", "")
+                philosopher_raw = msg.get("philosopher", "platone")
                 try:
                     philosopher = Philosopher(philosopher_raw)
                 except ValueError:
-                    philosopher = Philosopher.FOUCAULT
+                    philosopher = Philosopher.PLATONE
                 task = asyncio.create_task(
                     _stream_intervention(ws, document_id, user,
-                                        "lente", context, philosopher)
+                                        "lente", context, philosopher,
+                                        selected_text=selected_text)
                 )
                 manager.register_task(document_id, str(user.id), task)
 
@@ -159,6 +161,7 @@ async def _stream_intervention(
     int_type: str,
     context: str,
     philosopher: Philosopher | None = None,
+    selected_text: str = "",
 ) -> None:
     """Stream an intervention to the client and persist it in the DB."""
     if not context.strip():
@@ -181,7 +184,9 @@ async def _stream_intervention(
         if int_type == "paradosso":
             iterator, provider, model_used = await InterventionService.paradosso(context)
         elif int_type == "lente" and philosopher:
-            iterator, provider, model_used = await InterventionService.lente(context, philosopher)
+            iterator, provider, model_used = await InterventionService.lente(
+                context, philosopher, selected_text=selected_text
+            )
         else:
             iterator, provider, model_used = await InterventionService.socratica(context)
 

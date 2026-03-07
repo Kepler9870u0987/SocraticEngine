@@ -1,43 +1,56 @@
 /* =============================================
    SocraticEngine — Global CSS Variables & Reset
-   Dark theme with philosophical typography
+   Dark baroque theme matching the PoC design
    ============================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+
 :root {
-  /* --- Dark Theme --- */
-  --bg-primary: #0d0d0f;
-  --bg-secondary: #16161a;
-  --bg-tertiary: #1e1e24;
-  --bg-card: #1a1a20;
-  --bg-hover: #242430;
+  /* --- PoC Core Palette --- */
+  --bg: #0e0e0e;
+  --surface: #131313;
+  --border: #222;
+  --border-lit: #333;
+  --accent: #c8f542;
+  --accent-dim: rgba(200,245,66,0.08);
+  --accent-dim2: rgba(200,245,66,0.04);
+  --text: #e0dcd4;
+  --text-dim: #888;
+  --text-dimmer: #444;
+  --danger: #ff5555;
+  --thinking: #5599ff;
+  --paradox: #ff8c42;
+  --lens: #c084fc;
 
-  /* --- Text --- */
-  --text-primary: #e8e6e3;
-  --text-secondary: #a0a0a8;
-  --text-muted: #6b6b75;
-  --text-accent: #f5f5f5;
-
-  /* --- Philosophical Colors --- */
-  --color-socratica: #4ade80;        /* Green — Socratic Voice */
-  --color-socratica-bg: rgba(74, 222, 128, 0.08);
-  --color-paradosso: #f97316;        /* Orange — Paradox */
-  --color-paradosso-bg: rgba(249, 115, 22, 0.08);
-  --color-lente: #a78bfa;           /* Violet — Philosophical Lenses */
-  --color-lente-bg: rgba(167, 139, 250, 0.08);
-
-  /* --- UI Colors --- */
-  --color-primary: #6366f1;
-  --color-primary-hover: #818cf8;
-  --color-danger: #ef4444;
+  /* --- Aliases for legacy components --- */
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--surface);
+  --bg-tertiary: #1a1a1a;
+  --bg-card: #161616;
+  --bg-hover: #1e1e1e;
+  --text-primary: var(--text);
+  --text-secondary: var(--text-dim);
+  --text-muted: var(--text-dimmer);
+  --text-accent: #fff;
+  --color-socratica: var(--accent);
+  --color-socratica-bg: var(--accent-dim);
+  --color-paradosso: var(--paradox);
+  --color-paradosso-bg: rgba(255,140,66,0.08);
+  --color-lente: var(--lens);
+  --color-lente-bg: rgba(192,132,252,0.08);
+  --color-primary: var(--accent);
+  --color-primary-hover: #d4f75a;
+  --color-danger: var(--danger);
   --color-success: #22c55e;
   --color-warning: #eab308;
-  --color-border: #2a2a34;
-  --color-border-hover: #3a3a48;
+  --color-border: var(--border);
+  --color-border-hover: var(--border-lit);
+  --color-surface: var(--surface);
 
   /* --- Typography --- */
   --font-author: 'Playfair Display', Georgia, serif;
   --font-machine: 'IBM Plex Mono', 'Courier New', monospace;
-  --font-ui: 'IBM Plex Mono', system-ui, sans-serif;
+  --font-ui: 'IBM Plex Mono', system-ui, monospace;
 
   /* --- Spacing --- */
   --space-xs: 4px;
@@ -48,14 +61,14 @@
   --space-2xl: 48px;
 
   /* --- Borders --- */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
 
   /* --- Shadows --- */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(255, 255, 255, 0.5);
 }
 
 /* --- Reset --- */
@@ -67,18 +80,29 @@
   box-sizing: border-box;
 }
 
-html {
-  font-size: 16px;
+html, body {
+  height: 100%;
+  font-size: 13px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   font-family: var(--font-ui);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
-  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow: hidden;
+}
+
+/* film grain overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
 }
 
 a {
@@ -209,20 +233,8 @@ button {
   margin: var(--space-md) 0;
 }
 
-/* --- Scrollbar --- */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-hover);
-}
+/* --- Scrollbar (PoC style: minimal 4px) --- */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dimmer); }

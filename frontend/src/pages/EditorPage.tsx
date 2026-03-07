@@ -19,6 +19,9 @@ export default function EditorPage() {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [sidebarTab, setSidebarTab] = useState<'interventions' | 'versions'>('interventions');
+  // editorKey forces ProseMirror to remount only on load/rollback, not on every keystroke
+  const [editorKey, setEditorKey] = useState('');
+  const [initialHtml, setInitialHtml] = useState('');
   const token = useRef<string>(localStorage.getItem('access_token') ?? '');
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentRef = useRef(content);
@@ -43,6 +46,8 @@ export default function EditorPage() {
       setDoc(data);
       setContent(data.content);
       setTitle(data.title);
+      setInitialHtml(data.content);
+      setEditorKey(data.id + '-' + data.version_number);
     } catch {
       navigate('/dashboard');
     } finally {
@@ -96,6 +101,8 @@ export default function EditorPage() {
     setContent(updated.content);
     setTitle(updated.title);
     setLastSaved(new Date());
+    setInitialHtml(updated.content);
+    setEditorKey(updated.id + '-' + updated.version_number);
   };
 
   if (loading) {
@@ -134,8 +141,9 @@ export default function EditorPage() {
       <main className="editor-main">
         <div className="editor-content-area">
           <ProseMirrorEditor
+            key={editorKey}
             ref={editorHandle}
-            initialContent={content}
+            initialContent={initialHtml}
             onChange={handleContentChange}
             onCtrlS={saveDocument}
             placeholder="Begin writing... The Socratic voice will challenge your assumptions."

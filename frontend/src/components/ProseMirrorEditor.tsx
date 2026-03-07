@@ -57,6 +57,9 @@ const ProseMirrorEditor = forwardRef<ProseMirrorEditorHandle, ProseMirrorEditorP
     const viewRef = useRef<EditorView | null>(null);
     const onChangeRef = useRef(onChange);
     const onCtrlSRef = useRef(onCtrlS);
+    // Capture initialContent only once on mount — never let it
+    // trigger a view re-creation on every keystroke.
+    const initialContentRef = useRef(initialContent);
 
     // Keep callback refs fresh without triggering re-creation
     onChangeRef.current = onChange;
@@ -72,7 +75,7 @@ const ProseMirrorEditor = forwardRef<ProseMirrorEditorHandle, ProseMirrorEditorP
     // Destroy any previous view
     viewRef.current?.destroy();
 
-    const doc = htmlToDoc(initialContent);
+    const doc = htmlToDoc(initialContentRef.current);
 
     const state = EditorState.create({
       doc,
@@ -103,7 +106,7 @@ const ProseMirrorEditor = forwardRef<ProseMirrorEditorHandle, ProseMirrorEditorP
     });
 
     viewRef.current = view;
-  }, [initialContent]);
+  }, []); // stable — view is only recreated when component remounts (via key prop)
 
   /* Mount / unmount */
   useEffect(() => {

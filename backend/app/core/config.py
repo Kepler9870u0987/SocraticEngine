@@ -42,8 +42,8 @@ class Settings(BaseSettings):
 
     # --- Google Gemini ---
     GEMINI_API_KEY: str = ""
-    GEMINI_FAST_MODEL: str = "gemini-2.0-flash"
-    GEMINI_HEAVY_MODEL: str = "gemini-2.5-pro-preview-05-06"
+    GEMINI_FAST_MODEL: str = "gemini-2.5-flash"
+    GEMINI_HEAVY_MODEL: str = "gemini-2.5-pro"
 
     # --- LLM Routing ---
     # preferred_provider: anthropic | openai | gemini

@@ -127,6 +127,8 @@ async def _stream_gemini(
             system_instruction=system,
             max_output_tokens=max_tokens,
             temperature=0.7,
+            # Disable thinking for faster, token-efficient streaming responses
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
         ),
     ):
         if chunk.text:
@@ -189,16 +191,22 @@ class LLMService:
                 "ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY"
             )
 
-        last_error: Optional[Exception] = None
-        for prov, mod in chain:
-            try:
-                iterator = _make_iterator(prov, mod, system, user, max_tokens)
-                return iterator, prov, mod
-            except Exception as exc:
-                log.warning("LLM provider %s/%s failed: %s", prov, mod, exc)
-                last_error = exc
+        # Return a safe wrapper that tries each provider in sequence.
+        # We must wrap because async generators throw only when iterated,
+        # not when constructed — so try/except around _make_iterator() is not enough.
 
-        raise RuntimeError(f"All LLM providers failed. Last error: {last_error}")
+        async def _with_fallback() -> AsyncIterator[str]:
+            for prov, mod in chain:
+                try:
+                    async for chunk in _make_iterator(prov, mod, system, user, max_tokens):
+                        yield chunk
+                    return  # success — stop after first working provider
+                except Exception as exc:
+                    log.warning("LLM provider %s/%s failed: %s", prov, mod, exc)
+            raise RuntimeError("All LLM providers failed.")
+
+        used_provider, used_model = chain[0]
+        return _with_fallback(), used_provider, used_model
 
     @staticmethod
     async def complete(

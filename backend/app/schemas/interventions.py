@@ -13,14 +13,14 @@ class InterventionType(str, Enum):
 
 
 class Philosopher(str, Enum):
-    PLATONE = "Platone"
-    ARISTOTELE = "Aristotele"
-    KANT = "Kant"
-    HEGEL = "Hegel"
-    NIETZSCHE = "Nietzsche"
-    HEIDEGGER = "Heidegger"
-    FOUCAULT = "Foucault"
-    WITTGENSTEIN = "Wittgenstein"
+    SARTRE = "sartre"
+    CAMUS = "camus"
+    HEIDEGGER = "heidegger"
+    LEVINAS = "levinas"
+    ARISTOTELE = "aristotele"
+    PLATONE = "platone"
+    WHITEHEAD = "whitehead"
+    BAUDRILLARD = "baudrillard"
 
 
 class UserReaction(str, Enum):

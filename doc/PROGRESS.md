@@ -1,7 +1,7 @@
 # SocraticEngine — Piano di Sviluppo e Progressi
 
-> Ultimo aggiornamento: 2025-07-12
-> Stato globale: 🟡 In corso — Fase 1 ~95%, Fase 2 ~90%, Fase 3 ~80%
+> Ultimo aggiornamento: 2026-03-07
+> Stato globale: 🟡 In corso — Fase 1 ~100%, Fase 2 ~90%, Fase 3 ~85%
 
 ## Legenda Stati
 - 🔴 Non iniziato
@@ -35,7 +35,7 @@
 | 1.2.6 | Tabella shared_artifacts (share links) | 🟢 | models/shared_artifact.py |
 | 1.2.7 | Tabella audit_logs | 🟢 | models/audit_log.py |
 | 1.2.8 | Indici FK, email, share_token | 🟢 | |
-| 1.2.9 | Generare prima migrazione Alembic | 🔴 | Richiede DB running |
+| 1.2.9 | Generare prima migrazione Alembic | � | `initial_schema` — 6 tabelle + indici |
 
 ### Task 1.3: Autenticazione Base — 🟢 COMPLETATO
 | ID | Subtask | Stato | Note |
@@ -145,11 +145,13 @@
 | 3.7.3 | Componente `InterventionPanel` | 🟢 | components/InterventionPanel.tsx |
 | 3.7.4 | Integrazione in `EditorPage` | 🟢 | pages/EditorPage.tsx |
 
-### Task 3.8: Migrazione DB — ⏸️ BLOCCATO
+### Task 3.8: Migrazione DB & Deploy — 🟢 COMPLETATO
 | ID | Subtask | Stato | Note |
 |----|---------|-------|------|
-| 3.8.1 | Alembic `--autogenerate` per tabella interventions | ⏸️ | Richiede Docker Desktop avviato |
-| 3.8.2 | `alembic upgrade head` | ⏸️ | Dopo 3.8.1 |
+| 3.8.1 | Alembic `--autogenerate` per tabella interventions | 🟢 | Revisione `3dd7a5b7ab1d` generata |
+| 3.8.2 | `alembic upgrade head` | 🟢 | DB aggiornato a head |
+| 3.8.3 | Backend avviato (uvicorn + hot-reload) | 🟢 | `http://localhost:8000` |
+| 3.8.4 | Frontend avviato (Vite dev) | 🟢 | `http://localhost:5173` |
 
 ## FASE 4: Sicurezza, Export e Condivisione — 🔴 6%
 > Task 4.1-4.6: Sicurezza API, Audit, Crittografia, Export, Share, Log → Tutti 🔴
@@ -170,18 +172,28 @@
 
 | Fase | Subtask | Completati | % |
 |------|---------|------------|---|
-| 1: Scaffolding | 22 | 20 | 91% |
+| 1: Scaffolding | 22 | 22 | 100% |
 | 2: Editor & UI | 20 | 18 | 90% |
-| 3: AI Core | 50 | 40 | 80% |
+| 3: AI Core | 52 | 44 | 85% |
 | 4: Sicurezza | 33 | 2 | 6% |
 | 5: Intelligence | 31 | 0 | 0% |
 | 6: Osservabilità | 17 | 2 | 12% |
-| **Totale prioritarie** | **173** | **82** | **47%** |
+| **Totale prioritarie** | **175** | **88** | **50%** |
 | Futuro (F.x) | 28 | 0 | 0% |
 
 ---
 
 ## Changelog
+
+### 2026-03-07 — Sessione 4: DB Migration + Deploy locale
+- ✅ Docker Desktop avviato (v29.2.0)
+- ✅ `docker compose up -d` — PostgreSQL 15 + Redis 7 running
+- ✅ `pydantic[email]` / `email-validator==2.2.*` installato e aggiunto a requirements.txt
+- ✅ `backend/.env` creato con chiavi sicure (generate con `secrets.token_hex`)
+- ✅ Alembic `initial_schema` generata (`3dd7a5b7ab1d`) e applicata a head
+- ✅ Backend FastAPI avviato su `http://localhost:8000` (uvicorn --reload)
+- ✅ Frontend Vite avviato su `http://localhost:5173`
+- ✅ Health check `/api/health` risponde `{"status":"ok","version":"0.1.0"}`
 
 ### 2025-07-12 — Sessione 3: Fase 3 AI Core (quasi completa)
 - ✅ PROGRESS.md aggiornato: Fase 3 con Gemini come terzo provider
@@ -230,9 +242,17 @@
 ---
 
 ## Prossimi Step Immediati
-1. **Avviare Docker Desktop** → `docker compose up -d`
-2. **Alembic migration** → `alembic revision --autogenerate -m "add_interventions_table"` + `alembic upgrade head`
-3. **Test E2E WebSocket** — aprire editor, verifica stream Voce Socratica
-4. Aggiungere cooldown anti-saturazione (Task 3.4.4)
-5. Diff visuale tra versioni (Task 2.3.4)
-6. Rate limiting endpoint auth (Task 1.3.7)
+1. **Inserire le API keys** in `backend/.env` (ANTHROPIC_API_KEY e/o OPENAI_API_KEY e/o GEMINI_API_KEY)
+2. **Test E2E WebSocket** — aprire `http://localhost:5173`, creare documento, verificare stream Voce Socratica
+3. Aggiungere cooldown anti-saturazione (Task 3.4.4)
+4. Diff visuale tra versioni (Task 2.3.4)
+5. Rate limiting endpoint auth (Task 1.3.7)
+
+> Per riavviare dopo reboot:
+> ```powershell
+> Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+> # attendi 20s poi:
+> cd c:\git\SocraticEngine; docker compose up -d
+> cd backend; .venv\Scripts\python.exe -m uvicorn app.main:app --reload
+> cd ..\frontend; npm run dev
+> ```
