@@ -1,10 +1,12 @@
 """
 Authentication endpoints — register, login, refresh, logout.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_db
+from app.core.rate_limiter import limiter
 from app.schemas.auth import (
     AuthResponse,
     TokenRefreshRequest,
@@ -19,9 +21,13 @@ from app.models.user import User
 
 router = APIRouter()
 
+_AUTH_RATE = f"{settings.RATE_LIMIT_AUTH_PER_MINUTE}/minute"
+
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(_AUTH_RATE)
 async def register(
+    request: Request,
     data: UserRegisterRequest,
     db: AsyncSession = Depends(get_db),
 ):
@@ -37,7 +43,9 @@ async def register(
 
 
 @router.post("/login", response_model=AuthResponse)
+@limiter.limit(_AUTH_RATE)
 async def login(
+    request: Request,
     data: UserLoginRequest,
     db: AsyncSession = Depends(get_db),
 ):
@@ -53,7 +61,9 @@ async def login(
 
 
 @router.post("/refresh", response_model=TokenResponse)
+@limiter.limit(_AUTH_RATE)
 async def refresh_token(
+    request: Request,
     data: TokenRefreshRequest,
     db: AsyncSession = Depends(get_db),
 ):

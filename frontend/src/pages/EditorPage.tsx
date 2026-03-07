@@ -5,13 +5,15 @@ import { useInterventions } from '../hooks/useInterventions';
 import InterventionPanel from '../components/InterventionPanel';
 import VersionPanel from '../components/VersionPanel';
 import LensToolbar from '../components/LensToolbar';
+import ProseMirrorEditor, { type ProseMirrorEditorHandle } from '../components/ProseMirrorEditor';
+import EditorToolbar from '../components/EditorToolbar';
 import './EditorPage.css';
 
 const AUTOSAVE_DELAY_MS = 3000;
 const SILENCE_DELAY_MS  = 3000;
 const MIN_WORDS         = 12;
 
-/** Strip HTML tags from ProseMirror-stored content so it displays cleanly in textarea. */
+/** Strip HTML tags to get plain text for word count and AI context. */
 function stripHtml(html: string): string {
   return html
     .replace(/<br\s*\/?>/gi, '\n')
@@ -29,13 +31,22 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter((w) => w.length > 0).length;
 }
 
+/** Get selected text from a ProseMirror EditorView. */
+function getSelectedText(view: import('prosemirror-view').EditorView | null): string {
+  if (!view) return '';
+  const { from, to } = view.state.selection;
+  if (from === to) return '';
+  return view.state.doc.textBetween(from, to, '\n');
+}
+
 export default function EditorPage() {
   const { documentId } = useParams<{ documentId: string }>();
   const navigate       = useNavigate();
 
   // ── Document state ──────────────────────────────────────────────
   const [doc,       setDoc]       = useState<DocumentDetailResponse | null>(null);
-  const [content,   setContent]   = useState('');
+  const [content,   setContent]   = useState('');    // HTML content from ProseMirror
+  const [plainText, setPlainText] = useState('');    // plain-text mirror for AI/counting
   const [title,     setTitle]     = useState('');
   const [loading,   setLoading]   = useState(true);
   const [rightTab,  setRightTab]  = useState<'voice' | 'versions'>('voice');
@@ -71,7 +82,7 @@ export default function EditorPage() {
   const autosaveTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentRef     = useRef(content);
   const titleRef       = useRef(title);
-  const textareaRef    = useRef<HTMLTextAreaElement>(null);
+  const pmRef          = useRef<ProseMirrorEditorHandle>(null);
 
   contentRef.current = content;
   titleRef.current   = title;
@@ -150,8 +161,8 @@ export default function EditorPage() {
     try {
       const data = await documentsApi.get(id);
       setDoc(data);
-      const plainText = stripHtml(data.content);
-      setContent(plainText);
+      setContent(data.content);           // HTML for ProseMirror
+      setPlainText(stripHtml(data.content)); // plain text for counting/AI
       setTitle(data.title);
     } catch {
       navigate('/dashboard');
@@ -175,8 +186,8 @@ export default function EditorPage() {
   // ── Version rollback ────────────────────────────────────────────
   const handleRollback = useCallback((updated: DocumentDetailResponse) => {
     setDoc(updated);
-    const plainText = stripHtml(updated.content);
-    setContent(plainText);
+    setContent(updated.content);
+    setPlainText(stripHtml(updated.content));
     setTitle(updated.title);
     setRightTab('voice');
   }, []);
@@ -208,18 +219,19 @@ export default function EditorPage() {
     setSilenceProgress(0);
   }
 
-  // ── Input handler ───────────────────────────────────────────────
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setContent(val);
+  // ── ProseMirror change handler ────────────────────────────────
+  const handleEditorChange = useCallback((html: string) => {
+    setContent(html);
+    const plain = stripHtml(html);
+    setPlainText(plain);
     scheduleAutosave();
-    sendTextActivity(val);
+    sendTextActivity(plain);
 
     // Reset silence bar & start counting
     clearTimeout(silenceTimerRef.current ?? undefined);
     resetSilenceBar();
 
-    const wc = countWords(val);
+    const wc = countWords(plain);
     if (wc < MIN_WORDS) {
       setIndicatorState('idle');
       return;
@@ -233,30 +245,24 @@ export default function EditorPage() {
       setIndicatorState('idle');
       resetSilenceBar();
     }, SILENCE_DELAY_MS);
-  };
+  }, [scheduleAutosave, sendTextActivity]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
     scheduleAutosave();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      saveDocument();
-    }
-  };
-
   // ── Paradox button ──────────────────────────────────────────────
   const handleParadox = () => {
-    const ta = textareaRef.current;
+    const view = pmRef.current?.getView() ?? null;
+    const sel = getSelectedText(view);
     let text = '';
     let isSelection = false;
-    if (ta && ta.selectionStart !== ta.selectionEnd) {
-      text = ta.value.substring(ta.selectionStart, ta.selectionEnd).trim();
+    if (sel.length > 0) {
+      text = sel.trim();
       isSelection = true;
     } else {
-      text = contentRef.current.trim();
+      text = plainText.trim();
     }
     if (countWords(text) < MIN_WORDS) {
       setParadoxOpen(true);
@@ -273,30 +279,27 @@ export default function EditorPage() {
   };
 
   // ── Text selection → Lens toolbar ──────────────────────────────
-  const handleSelectionChange = () => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart;
-    const end   = ta.selectionEnd;
-    const sel   = ta.value.substring(start, end).trim();
+  const handleSelectionChange = useCallback(() => {
+    const view = pmRef.current?.getView();
+    if (!view) return;
+    const sel = getSelectedText(view);
 
     if (sel.length > 15) {
       setLensSelected(sel);
       setSelectionHint(false);
-      // Position toolbar near selection
-      const rect = ta.getBoundingClientRect();
-      const lineHeight = 22;
-      const linesBefore = ta.value.substring(0, end).split('\n').length;
-      const rawTop = rect.top + linesBefore * lineHeight - ta.scrollTop + 8;
-      const clamped = Math.min(Math.max(rawTop, rect.top + 8), window.innerHeight - 330);
-      setLensPos({ top: clamped, left: Math.max(8, rect.left + rect.width / 2 - 105) });
+      // Position toolbar near cursor
+      const coords = view.coordsAtPos(view.state.selection.to);
+      const editorRect = view.dom.getBoundingClientRect();
+      const rawTop = coords.bottom + 8;
+      const clamped = Math.min(Math.max(rawTop, editorRect.top + 8), window.innerHeight - 330);
+      setLensPos({ top: clamped, left: Math.max(8, coords.left - 105) });
       setLensVisible(true);
     } else {
       setLensVisible(false);
-      if (contentRef.current.trim().length > 30) setSelectionHint(true);
+      if (plainText.length > 30) setSelectionHint(true);
       else setSelectionHint(false);
     }
-  };
+  }, [plainText]);
 
   // ── Lens apply ──────────────────────────────────────────────────
   const handleLensSelect = (philosopherKey: string) => {
@@ -307,7 +310,7 @@ export default function EditorPage() {
     setLensDrawerSpostamento('');
     setLensDrawerThinking(true);
     setLensDrawerOpen(true);
-    triggerLente(contentRef.current.trim(), philosopherKey, lensSelected);
+    triggerLente(plainText.trim(), philosopherKey, lensSelected);
   };
 
   // ── Ctrl+S in title input ───────────────────────────────────────
@@ -318,7 +321,7 @@ export default function EditorPage() {
     }
   };
 
-  const wordCount = countWords(content);
+  const wordCount = countWords(plainText);
   const silenceRemainingSecs =
     indicatorState === 'counting'
       ? Math.max(1, Math.ceil(SILENCE_DELAY_MS * (1 - silenceProgress / 100) / 1000))
@@ -391,18 +394,22 @@ export default function EditorPage() {
             spellCheck={false}
           />
 
-          <textarea
-            ref={textareaRef}
-            className="editor-textarea"
-            value={content}
-            onChange={handleContentChange}
-            onKeyDown={handleKeyDown}
+          <EditorToolbar view={pmRef.current?.getView() ?? null} />
+
+          <div
+            className="editor-prosemirror-container"
             onMouseUp={() => setTimeout(handleSelectionChange, 20)}
-            onKeyUp={(e) => { if (e.shiftKey) setTimeout(handleSelectionChange, 20); }}
             onClick={(e) => e.stopPropagation()}
-            placeholder="Inizia a scrivere. Smetti. La voce arriva nel silenzio."
-            spellCheck={false}
-          />
+          >
+            <ProseMirrorEditor
+              ref={pmRef}
+              key={doc?.id}
+              initialContent={content}
+              onChange={handleEditorChange}
+              onCtrlS={saveDocument}
+              placeholder="Inizia a scrivere. Smetti. La voce arriva nel silenzio."
+            />
+          </div>
 
           {/* Paradox panel */}
           <div className={`paradox-panel ${paradoxOpen ? 'open' : ''}`}>
@@ -458,6 +465,7 @@ export default function EditorPage() {
             <VersionPanel
               documentId={documentId!}
               currentVersionNumber={doc?.version_number ?? 0}
+              currentContent={content}
               onRollback={handleRollback}
             />
           )}

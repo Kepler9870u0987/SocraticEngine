@@ -9,23 +9,27 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { documentsApi, type VersionResponse, type DocumentDetailResponse } from '../api/client';
+import VersionDiff from './VersionDiff';
 import './VersionPanel.css';
 
 interface VersionPanelProps {
   documentId: string;
   currentVersionNumber: number;
+  currentContent: string;
   onRollback: (doc: DocumentDetailResponse) => void;
 }
 
 export default function VersionPanel({
   documentId,
   currentVersionNumber,
+  currentContent,
   onRollback,
 }: VersionPanelProps) {
   const [versions, setVersions] = useState<VersionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [rollingBack, setRollingBack] = useState<string | null>(null);
+  const [diffVersionId, setDiffVersionId] = useState<string | null>(null);
 
   const loadVersions = useCallback(async () => {
     setLoading(true);
@@ -121,13 +125,31 @@ export default function VersionPanel({
                     )}
                     <div className="version-preview">{truncate(v.content)}</div>
                     {!isCurrent && (
-                      <button
-                        className="btn-secondary version-rollback-btn"
-                        disabled={rollingBack === v.id}
-                        onClick={() => handleRollback(v.id)}
-                      >
-                        {rollingBack === v.id ? 'Rolling back…' : 'Rollback to this version'}
-                      </button>
+                      <>
+                        <div className="version-actions">
+                          <button
+                            className="btn-secondary version-diff-btn"
+                            onClick={() => setDiffVersionId(
+                              diffVersionId === v.id ? null : v.id
+                            )}
+                          >
+                            {diffVersionId === v.id ? '✕ chiudi diff' : '◊ mostra diff'}
+                          </button>
+                          <button
+                            className="btn-secondary version-rollback-btn"
+                            disabled={rollingBack === v.id}
+                            onClick={() => handleRollback(v.id)}
+                          >
+                            {rollingBack === v.id ? 'Rolling back…' : 'Rollback to this version'}
+                          </button>
+                        </div>
+                        {diffVersionId === v.id && (
+                          <VersionDiff
+                            oldText={v.content}
+                            newText={currentContent}
+                          />
+                        )}
+                      </>
                     )}
                   </div>
                 )}

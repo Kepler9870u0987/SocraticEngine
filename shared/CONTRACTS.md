@@ -18,11 +18,11 @@
 - `rejected` — User explicitly rejected
 
 ## Philosophers (Lenses)
-1. Platone
-2. Aristotele
-3. Kant
-4. Hegel
-5. Nietzsche
-6. Heidegger
-7. Sartre
-8. Foucault
+1. Sartre
+2. Camus
+3. Heidegger
+4. Levinas
+5. Aristotele
+6. Platone
+7. Whitehead
+8. Baudrillard

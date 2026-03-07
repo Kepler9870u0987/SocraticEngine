@@ -25,8 +25,10 @@ import json
 import logging
 import time
 import uuid
+from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user_ws
@@ -40,6 +42,7 @@ router = APIRouter()
 log = logging.getLogger(__name__)
 
 SOCRATICA_DEBOUNCE_S = 3.0  # seconds of silence before auto-trigger
+PARADOSSO_COOLDOWN_S = 300  # 5 minutes cooldown between paradox triggers per document
 
 
 @router.websocket("/ws/{document_id}")
@@ -90,13 +93,23 @@ async def websocket_endpoint(ws: WebSocket, document_id: str) -> None:
 
             # ── paradosso ────────────────────────────────────────────────────
             elif msg_type == WsMessageType.TRIGGER_PARADOSSO:
-                await manager.abort(document_id, str(user.id))
-                context = msg.get("context", "")
-                task = asyncio.create_task(
-                    _stream_intervention(ws, document_id, user,
-                                        "paradosso", context)
-                )
-                manager.register_task(document_id, str(user.id), task)
+                # Check cooldown
+                cooldown_remaining = await _check_paradosso_cooldown(document_id)
+                if cooldown_remaining > 0:
+                    await _send(ws, {
+                        "type": "cooldown",
+                        "intervention_type": "paradosso",
+                        "remaining_seconds": cooldown_remaining,
+                        "message": f"Paradosso in cooldown — attendi {cooldown_remaining}s",
+                    })
+                else:
+                    await manager.abort(document_id, str(user.id))
+                    context = msg.get("context", "")
+                    task = asyncio.create_task(
+                        _stream_intervention(ws, document_id, user,
+                                            "paradosso", context)
+                    )
+                    manager.register_task(document_id, str(user.id), task)
 
             # ── lente filosofica ─────────────────────────────────────────────
             elif msg_type == WsMessageType.TRIGGER_LENTE:
@@ -110,7 +123,7 @@ async def websocket_endpoint(ws: WebSocket, document_id: str) -> None:
                     philosopher = Philosopher.PLATONE
                 task = asyncio.create_task(
                     _stream_intervention(ws, document_id, user,
-                                        "lente", context, philosopher,
+                                        "lente_filosofica", context, philosopher,
                                         selected_text=selected_text)
                 )
                 manager.register_task(document_id, str(user.id), task)
@@ -136,6 +149,34 @@ async def websocket_endpoint(ws: WebSocket, document_id: str) -> None:
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
+async def _check_paradosso_cooldown(document_id: str) -> int:
+    """Check if a paradox cooldown is active for this document.
+
+    Returns remaining seconds (0 if no cooldown active).
+    """
+    try:
+        async with async_session_maker() as session:
+            cutoff = datetime.now(timezone.utc) - timedelta(seconds=PARADOSSO_COOLDOWN_S)
+            result = await session.execute(
+                select(Intervention.created_at)
+                .where(
+                    Intervention.document_id == document_id,
+                    Intervention.type == "paradosso",
+                    Intervention.created_at >= cutoff,
+                )
+                .order_by(Intervention.created_at.desc())
+                .limit(1)
+            )
+            last = result.scalar_one_or_none()
+            if last is None:
+                return 0
+            elapsed = (datetime.now(timezone.utc) - last).total_seconds()
+            remaining = int(PARADOSSO_COOLDOWN_S - elapsed)
+            return max(0, remaining)
+    except Exception as exc:
+        log.warning("Cooldown check failed: %s", exc)
+        return 0  # fail open
 
 async def _debounced_socratica(
     ws: WebSocket,
@@ -183,7 +224,7 @@ async def _stream_intervention(
         # Choose the right service method
         if int_type == "paradosso":
             iterator, provider, model_used = await InterventionService.paradosso(context)
-        elif int_type == "lente" and philosopher:
+        elif int_type == "lente_filosofica" and philosopher:
             iterator, provider, model_used = await InterventionService.lente(
                 context, philosopher, selected_text=selected_text
             )

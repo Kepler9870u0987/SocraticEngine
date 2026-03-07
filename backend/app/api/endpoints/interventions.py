@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import time
 import uuid
+from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -29,6 +30,8 @@ from app.schemas.interventions import (
 from app.services.intervention_service import InterventionService
 
 router = APIRouter()
+
+PARADOSSO_COOLDOWN_S = 300  # 5 minutes
 
 
 async def _assert_document_access(
@@ -102,6 +105,28 @@ async def trigger_paradosso(
 ):
     """Trigger a Paradosso intervention (blocking)."""
     await _assert_document_access(body.document_id, str(user.id), db)
+
+    # ── Cooldown check ────────────────────────────────────────────
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=PARADOSSO_COOLDOWN_S)
+    recent = await db.execute(
+        select(Intervention.created_at)
+        .where(
+            Intervention.document_id == body.document_id,
+            Intervention.type == "paradosso",
+            Intervention.created_at >= cutoff,
+        )
+        .order_by(Intervention.created_at.desc())
+        .limit(1)
+    )
+    last_paradosso = recent.scalar_one_or_none()
+    if last_paradosso is not None:
+        elapsed = (datetime.now(timezone.utc) - last_paradosso).total_seconds()
+        remaining = int(PARADOSSO_COOLDOWN_S - elapsed)
+        if remaining > 0:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Paradosso in cooldown — attendi {remaining}s",
+            )
 
     content, provider, model_used, latency_ms = await InterventionService.complete_paradosso(
         body.context

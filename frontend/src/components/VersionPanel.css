@@ -134,8 +134,33 @@
   margin-bottom: var(--space-sm);
 }
 
+.version-actions {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.version-diff-btn {
+  flex: 1;
+  font-size: 0.7rem;
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--text-muted);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-machine);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: all 0.15s;
+}
+
+.version-diff-btn:hover {
+  color: var(--text-secondary);
+  border-color: var(--text-muted);
+}
+
 .version-rollback-btn {
-  width: 100%;
+  flex: 1;
   font-size: 0.75rem;
   padding: var(--space-xs) var(--space-sm);
 }

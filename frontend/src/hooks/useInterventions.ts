@@ -38,6 +38,7 @@ export interface Intervention {
   provider?: string;
   latencyMs?: number;
   createdAt: Date;
+  cooldownRemaining?: number; // seconds remaining for cooldown
 }
 
 type WsStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -56,7 +57,6 @@ interface UseInterventionsReturn {
 }
 
 const WS_RECONNECT_DELAY_MS = 3000;
-const SOCRATICA_DEBOUNCE_MS = 3000;
 
 /** Try to parse the final JSON body from an accumulated LLM stream. */
 function parseInterventionJson(raw: string): InterventionParsed | undefined {
@@ -78,7 +78,6 @@ export function useInterventions(
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const streamingRef = useRef<Intervention | null>(null);
 
   // Keep streaming ref in sync
@@ -161,6 +160,17 @@ export function useInterventions(
         setInterventions((all) => [err, ...all]);
         return null;
       });
+    } else if (type === 'cooldown') {
+      // Paradox cooldown — create a notification intervention
+      const cooldownIv: Intervention = {
+        id: `cooldown-${Date.now()}`,
+        type: (msg.intervention_type as InterventionType) || 'paradosso',
+        content: msg.message as string || 'Cooldown attivo',
+        status: 'error',
+        createdAt: new Date(),
+        cooldownRemaining: msg.remaining_seconds as number,
+      };
+      setInterventions((all) => [cooldownIv, ...all]);
     }
   };
 
@@ -169,7 +179,6 @@ export function useInterventions(
     connect();
     return () => {
       if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
       wsRef.current?.close();
     };
   }, [connect]);
@@ -200,28 +209,13 @@ export function useInterventions(
 
   const sendTextActivity = useCallback(
     (context: string) => {
-      // Cancel previous debounce
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      // Send activity to server — server handles the 3s debounce
       send({ type: 'text_activity', context });
-      // Schedule automatic socratica after silence
-      debounceTimer.current = setTimeout(() => {
-        if (context.trim().split(/\s+/).filter(Boolean).length >= 12) {
-          // Compute trigger excerpt (last significant paragraph)
-          const paragraphs = context.split(/\n+/).filter((p) => p.trim().length > 20);
-          const lastParagraph = paragraphs[paragraphs.length - 1];
-          const excerpt =
-            lastParagraph !== undefined
-              ? lastParagraph.trim()
-              : context.slice(-200).trim();
-          triggerSocratica(context, excerpt);
-        }
-      }, SOCRATICA_DEBOUNCE_MS + 500);
     },
-    [send, triggerSocratica],
+    [send],
   );
 
   const abort = useCallback(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
     send({ type: 'abort' });
     setStreaming(null);
   }, [send]);

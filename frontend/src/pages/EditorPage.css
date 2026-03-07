@@ -261,7 +261,7 @@
 .title-input::placeholder { color: var(--text-dimmer); font-style: italic; }
 .title-input:focus { background: transparent; outline: none; }
 
-/* ── Editor textarea ─────────────────────────────────────────── */
+/* ── Editor textarea (legacy, kept for reference) ────────────── */
 
 .editor-textarea {
   flex: 1;
@@ -280,6 +280,41 @@
 }
 
 .editor-textarea::placeholder { color: var(--text-dimmer); font-style: italic; }
+
+/* ── ProseMirror container ───────────────────────────────────── */
+
+.editor-prosemirror-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.editor-prosemirror-container .prosemirror-editor-wrapper {
+  min-height: 100%;
+}
+
+.editor-prosemirror-container .socratic-prosemirror {
+  padding: 2rem 2.5rem;
+  min-height: 100%;
+  outline: none;
+  font-family: var(--font-machine);
+  font-size: 13px;
+  line-height: 1.95;
+  color: var(--text);
+}
+
+.editor-prosemirror-container .socratic-prosemirror:focus {
+  outline: none;
+}
+
+.editor-prosemirror-container .socratic-prosemirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--text-dimmer);
+  font-style: italic;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
 
 /* ── Paradox panel ───────────────────────────────────────────── */
 
