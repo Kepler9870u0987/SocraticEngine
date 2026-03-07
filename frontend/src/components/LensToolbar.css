@@ -1,0 +1,59 @@
+/* ─── Lens Toolbar (floating selection popup) ───────────────────── */
+
+.lens-toolbar {
+  position: fixed;
+  background: #1a1a1a;
+  border: 1px solid var(--lens);
+  padding: 0.5rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  z-index: 9000;
+  min-width: 210px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  animation: lensAppear 0.15s ease;
+}
+
+@keyframes lensAppear {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lens-toolbar-label {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--lens);
+  opacity: 0.6;
+  padding: 0 0.2rem 0.3rem;
+  border-bottom: 1px solid #2a2a2a;
+  margin-bottom: 0.1rem;
+}
+
+.lens-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.12s;
+}
+
+.lens-option:hover {
+  border-color: var(--lens);
+  background: rgba(192, 132, 252, 0.06);
+}
+
+.lens-option-name {
+  font-size: 0.65rem;
+  color: var(--text);
+  font-family: var(--font-machine);
+}
+
+.lens-option-desc {
+  font-size: 0.55rem;
+  color: var(--text-dimmer);
+  font-style: italic;
+  margin-left: auto;
+}

@@ -263,8 +263,6 @@ export function useInterventions(
 }
 
 
-export type InterventionType = 'socratica' | 'paradosso' | 'lente_filosofica';
-
 export type InterventionStatus = 'streaming' | 'done' | 'error';
 
 export interface Intervention {
