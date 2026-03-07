@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { documentsApi, type DocumentDetailResponse } from '../api/client';
+import { documentsApi } from '../api/client';
 import { useInterventions } from '../hooks/useInterventions';
 import InterventionPanel from '../components/InterventionPanel';
 import LensToolbar from '../components/LensToolbar';
@@ -33,7 +33,6 @@ export default function EditorPage() {
   const navigate       = useNavigate();
 
   // ── Document state ──────────────────────────────────────────────
-  const [doc,       setDoc]       = useState<DocumentDetailResponse | null>(null);
   const [content,   setContent]   = useState('');
   const [title,     setTitle]     = useState('');
   const [loading,   setLoading]   = useState(true);
@@ -78,7 +77,6 @@ export default function EditorPage() {
     interventions,
     streaming,
     wsStatus,
-    triggerSocratica,
     triggerParadosso,
     triggerLente,
     sendTextActivity,
@@ -147,7 +145,6 @@ export default function EditorPage() {
   const loadDocument = async (id: string) => {
     try {
       const data = await documentsApi.get(id);
-      setDoc(data);
       const plainText = stripHtml(data.content);
       setContent(plainText);
       setTitle(data.title);
@@ -162,11 +159,10 @@ export default function EditorPage() {
   const saveDocument = useCallback(async () => {
     if (!documentId) return;
     try {
-      const updated = await documentsApi.update(documentId, {
+      await documentsApi.update(documentId, {
         title: titleRef.current,
         content: contentRef.current,
       });
-      setDoc(updated);
     } catch { /* silent */ }
   }, [documentId]);
 
