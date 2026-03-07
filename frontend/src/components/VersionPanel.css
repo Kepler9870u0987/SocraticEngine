@@ -98,13 +98,13 @@
 }
 
 .version-badge {
-  font-size: 0.65rem;
+  font-size: 0.55rem;
   color: var(--color-socratica);
   border: 1px solid var(--color-socratica);
   padding: 1px 6px;
-  border-radius: 10px;
+  border-radius: 0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
 }
 
 /* --- Detail --- */

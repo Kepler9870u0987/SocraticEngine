@@ -120,12 +120,55 @@
 
 .columns {
   display: grid;
-  grid-template-columns: 1fr 1px 380px;
+  grid-template-columns: 1fr 380px;
   overflow: hidden;
 }
 
 .col-divider {
   background: var(--border);
+}
+
+/* ── Right panel (tab container) ─────────────────────────────── */
+
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+  height: 100%;
+}
+
+.right-panel-tabs {
+  display: flex;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.rpanel-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dimmer);
+  font-family: var(--font-machine);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  padding: 0.65rem 0.5rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  text-align: center;
+}
+
+.rpanel-tab:hover          { color: var(--text-dim); }
+.rpanel-tab.active         { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ensure voice-col and version-panel fill the remaining height inside right-panel */
+.right-panel > .voice-col,
+.right-panel > .version-panel {
+  flex: 1;
+  min-height: 0;
+  height: auto;
 }
 
 /* ── Editor column ───────────────────────────────────────────── */
@@ -249,13 +292,43 @@
   transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.paradox-panel.open { max-height: 260px; }
+.paradox-panel.open { max-height: 300px; }
 
 .paradox-inner {
   padding: 1.2rem 2.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+}
+
+.paradox-inner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.paradox-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dimmer);
+  font-family: var(--font-machine);
+  font-size: 0.6rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.paradox-close:hover { color: var(--text-dim); }
+
+.paradox-selection-tag {
+  font-family: var(--font-machine);
+  font-size: 0.6rem;
+  color: var(--paradox);
+  opacity: 0.65;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .paradox-label {

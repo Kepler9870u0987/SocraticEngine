@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { documentsApi } from '../api/client';
+import { documentsApi, type DocumentDetailResponse } from '../api/client';
 import { useInterventions } from '../hooks/useInterventions';
 import InterventionPanel from '../components/InterventionPanel';
+import VersionPanel from '../components/VersionPanel';
 import LensToolbar from '../components/LensToolbar';
 import './EditorPage.css';
 
@@ -33,9 +34,11 @@ export default function EditorPage() {
   const navigate       = useNavigate();
 
   // ── Document state ──────────────────────────────────────────────
+  const [doc,       setDoc]       = useState<DocumentDetailResponse | null>(null);
   const [content,   setContent]   = useState('');
   const [title,     setTitle]     = useState('');
   const [loading,   setLoading]   = useState(true);
+  const [rightTab,  setRightTab]  = useState<'voice' | 'versions'>('voice');
 
   // ── Silence / indicator state ───────────────────────────────────
   const [silenceProgress, setSilenceProgress]   = useState(0);
@@ -45,9 +48,10 @@ export default function EditorPage() {
   const silenceBarStart   = useRef<number | null>(null);
 
   // ── Paradox panel state ─────────────────────────────────────────
-  const [paradoxOpen,     setParadoxOpen]     = useState(false);
-  const [paradoxContent,  setParadoxContent]  = useState('');
-  const [paradoxNucleus,  setParadoxNucleus]  = useState('');
+  const [paradoxOpen,      setParadoxOpen]      = useState(false);
+  const [paradoxContent,   setParadoxContent]   = useState('');
+  const [paradoxNucleus,   setParadoxNucleus]   = useState('');
+  const [paradoxSelection, setParadoxSelection] = useState<string | null>(null);
 
   // ── Lens toolbar state ──────────────────────────────────────────
   const [lensVisible,    setLensVisible]    = useState(false);
@@ -145,6 +149,7 @@ export default function EditorPage() {
   const loadDocument = async (id: string) => {
     try {
       const data = await documentsApi.get(id);
+      setDoc(data);
       const plainText = stripHtml(data.content);
       setContent(plainText);
       setTitle(data.title);
@@ -159,12 +164,22 @@ export default function EditorPage() {
   const saveDocument = useCallback(async () => {
     if (!documentId) return;
     try {
-      await documentsApi.update(documentId, {
+      const updated = await documentsApi.update(documentId, {
         title: titleRef.current,
         content: contentRef.current,
       });
+      setDoc(updated);
     } catch { /* silent */ }
   }, [documentId]);
+
+  // ── Version rollback ────────────────────────────────────────────
+  const handleRollback = useCallback((updated: DocumentDetailResponse) => {
+    setDoc(updated);
+    const plainText = stripHtml(updated.content);
+    setContent(plainText);
+    setTitle(updated.title);
+    setRightTab('voice');
+  }, []);
 
   const scheduleAutosave = useCallback(() => {
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
@@ -234,13 +249,26 @@ export default function EditorPage() {
 
   // ── Paradox button ──────────────────────────────────────────────
   const handleParadox = () => {
-    const text = contentRef.current.trim();
+    const ta = textareaRef.current;
+    let text = '';
+    let isSelection = false;
+    if (ta && ta.selectionStart !== ta.selectionEnd) {
+      text = ta.value.substring(ta.selectionStart, ta.selectionEnd).trim();
+      isSelection = true;
+    } else {
+      text = contentRef.current.trim();
+    }
     if (countWords(text) < MIN_WORDS) {
       setParadoxOpen(true);
-      setParadoxContent('Scrivi almeno qualche frase prima di cercare il paradosso.');
+      setParadoxContent(
+        isSelection
+          ? 'Seleziona almeno qualche frase per trovare il paradosso della selezione.'
+          : 'Scrivi almeno qualche frase prima di cercare il paradosso.',
+      );
       setParadoxNucleus('');
       return;
     }
+    setParadoxSelection(isSelection ? text : null);
     triggerParadosso(text);
   };
 
@@ -291,6 +319,10 @@ export default function EditorPage() {
   };
 
   const wordCount = countWords(content);
+  const silenceRemainingSecs =
+    indicatorState === 'counting'
+      ? Math.max(1, Math.ceil(SILENCE_DELAY_MS * (1 - silenceProgress / 100) / 1000))
+      : null;
 
   if (loading) {
     return <div className="editor-loading">Caricamento...</div>;
@@ -315,7 +347,9 @@ export default function EditorPage() {
           <div className={`silence-indicator ${indicatorState === 'counting' ? 'active' : indicatorState === 'thinking' ? 'thinking' : ''}`}>
             <div className="silence-dot" />
             <span>
-              {indicatorState === 'counting' ? 'silenzio...' : indicatorState === 'thinking' ? 'smontando' : 'in attesa'}
+              {indicatorState === 'counting'
+                ? `silenzio... ${silenceRemainingSecs}s`
+                : indicatorState === 'thinking' ? 'smontando' : 'in attesa'}
             </span>
           </div>
           <span className="word-count">
@@ -339,9 +373,11 @@ export default function EditorPage() {
                 className={`paradox-btn ${paradossoStreaming ? 'loading' : ''}`}
                 disabled={!!paradossoStreaming}
                 onClick={handleParadox}
-                title="Trova la contraddizione interna del tuo testo"
+                title="Seleziona del testo per analizzarne una parte, oppure clicca per analizzare tutto il documento"
               >
-                {paradossoStreaming ? '⊘ cercando...' : '⊘ trova il paradosso'}
+                {paradossoStreaming
+                  ? '⊘ cercando...'
+                  : '⊘ trova il paradosso'}
               </button>
             </div>
           </div>
@@ -371,7 +407,17 @@ export default function EditorPage() {
           {/* Paradox panel */}
           <div className={`paradox-panel ${paradoxOpen ? 'open' : ''}`}>
             <div className="paradox-inner">
-              <span className="paradox-label">⊘ contraddizione interna</span>
+              <div className="paradox-inner-header">
+                <span className="paradox-label">
+                  {paradoxSelection ? '⊘ contraddizione della selezione' : '⊘ contraddizione interna'}
+                </span>
+                <button className="paradox-close" onClick={() => setParadoxOpen(false)}>✕</button>
+              </div>
+              {paradoxSelection && (
+                <div className="paradox-selection-tag">
+                  "{paradoxSelection.length > 80 ? paradoxSelection.substring(0, 80) + '…' : paradoxSelection}"
+                </div>
+              )}
               <div className={`paradox-content ${!paradoxContent || paradoxContent === 'analisi in corso...' ? 'empty' : ''}`}>
                 {paradoxContent || 'Premi il bottone per trovare il paradosso nel tuo testo.'}
               </div>
@@ -382,18 +428,40 @@ export default function EditorPage() {
           </div>
         </div>
 
-        {/* ── Divider ────────────────────────────────────── */}
-        <div className="col-divider" />
+        {/* ── Right panel: voice + versioni ──────────────── */}
+        <div className="right-panel">
+          <div className="right-panel-tabs">
+            <button
+              className={`rpanel-tab ${rightTab === 'voice' ? 'active' : ''}`}
+              onClick={() => setRightTab('voice')}
+            >
+              Voce socratica
+            </button>
+            <button
+              className={`rpanel-tab ${rightTab === 'versions' ? 'active' : ''}`}
+              onClick={() => setRightTab('versions')}
+            >
+              Versioni
+            </button>
+          </div>
 
-        {/* ── Voice column ───────────────────────────────── */}
-        <InterventionPanel
-          interventions={socraticaInterventions}
-          streaming={socraticaStreaming}
-          wsStatus={wsStatus}
-          silenceProgress={silenceProgress}
-          onClear={clearAll}
-          onReaction={setReaction}
-        />
+          {rightTab === 'voice' ? (
+            <InterventionPanel
+              interventions={socraticaInterventions}
+              streaming={socraticaStreaming}
+              wsStatus={wsStatus}
+              silenceProgress={silenceProgress}
+              onClear={clearAll}
+              onReaction={setReaction}
+            />
+          ) : (
+            <VersionPanel
+              documentId={documentId!}
+              currentVersionNumber={doc?.version_number ?? 0}
+              onRollback={handleRollback}
+            />
+          )}
+        </div>
 
       </div>
 

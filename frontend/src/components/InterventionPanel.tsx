@@ -33,7 +33,6 @@ export default function InterventionPanel({
     <div className="voice-col">
       {/* Header */}
       <div className="voice-header">
-        <span className="col-label">Voce socratica</span>
         <div className="voice-header-right">
           <span className={`ws-status-dot ws-${wsStatus}`} title={`WebSocket: ${wsStatus}`} />
           {interventions.length > 0 && (
